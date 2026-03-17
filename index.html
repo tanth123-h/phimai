@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>อุทยานประวัติศาสตร์พิมาย — Phimai Historical Park</title>
+  <meta name="description" content="อุทยานประวัติศาสตร์พิมาย ปราสาทหินขอมที่ยิ่งใหญ่ที่สุดในประเทศไทย จังหวัดนครราชสีมา" />
+
+  <!-- Google Fonts: Sarabun (ไทย) + Cormorant Garant (display) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,600;0,700;1,400&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- สไตล์หลัก -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVIGATION — แก้เมนูได้ที่นี่
+  ============================================================ -->
+  <nav id="navbar">
+    <div class="container">
+      <div class="nav-inner">
+
+        <!-- โลโก้ -->
+        <a href="#hero" class="nav-logo">
+          <div class="nav-logo-icon">🏛️</div>
+          <div class="nav-logo-text">
+            พิมาย
+            <span>อุทยานประวัติศาสตร์</span>
+          </div>
+        </a>
+
+        <!-- เมนูหลัก (desktop) -->
+        <ul class="nav-links">
+          <li><a href="#highlights">ไฮไลท์</a></li>
+          <li><a href="#info">ประวัติ</a></li>
+          <li><a href="#gallery">แกลเลอรี</a></li>
+          <li><a href="#map-section">แผนที่</a></li>
+          <li><a href="#chatbot">ถาม AI</a></li>
+          <li><a href="#contact" class="nav-cta">ติดต่อ</a></li>
+        </ul>
+
+        <!-- Hamburger (mobile) -->
+        <div class="hamburger" id="hamburger">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <span class="mobile-close" id="mobileClose">✕</span>
+    <a href="#highlights">ไฮไลท์</a>
+    <a href="#info">ประวัติศาสตร์</a>
+    <a href="#gallery">แกลเลอรี</a>
+    <a href="#architecture">สถาปัตยกรรม</a>
+    <a href="#map-section">แผนที่</a>
+    <a href="#chatbot">ถาม AI</a>
+    <a href="#contact">ติดต่อ</a>
+  </div>
+
+  <!-- ============================================================
+       HERO — ส่วนหน้าแรก
+  ============================================================ -->
+  <section id="hero">
+    <!-- พื้นหลัง (รูปภาพ) — เปลี่ยน URL ได้ใน CSS: .hero-bg -->
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <!-- badge ด้านบน -->
+      <div class="hero-badge">
+        <span>🇹🇭</span> นครราชสีมา · <em>ประเทศไทย</em>
+      </div>
+
+      <!-- ชื่อหลัก -->
+      <h1 class="hero-title">ปราสาทหินพิมาย</h1>
+      <p class="hero-title-sub">Phimai Historical Park</p>
+
+      <!-- คำอธิบาย -->
+      <p class="hero-desc">
+        ปราสาทหินขอมที่ยิ่งใหญ่ที่สุดในประเทศไทย — ประตูศักดิ์สิทธิ์สู่อารยธรรมกว่า 1,000 ปี
+        ต้นแบบของนครวัดแห่งกัมพูชา ตั้งอยู่ใจกลางอีสาน
+      </p>
+
+      <!-- ปุ่ม -->
+      <div class="hero-actions">
+        <a href="#info" class="btn btn-primary">
+          <span>✦</span> สำรวจอุทยาน
+        </a>
+        <a href="#chatbot" class="btn btn-ghost-white">
+          <span>🤖</span> ถามไกด์ AI
+        </a>
+      </div>
+
+      <!-- สถิติ -->
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">1,000+</div>
+          <div class="hero-stat-label">ปีแห่งประวัติศาสตร์</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">565×1,030</div>
+          <div class="hero-stat-label">เมตร — ขนาดคูน้ำ</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">#1</div>
+          <div class="hero-stat-label">ปราสาทขอมใหญ่สุดในไทย</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">20 ฿</div>
+          <div class="hero-stat-label">ค่าเข้าชมคนไทย</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ลูกศรชี้ลง -->
+    <div class="hero-scroll-hint">
+      <div class="scroll-line"></div>
+      เลื่อนลง
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HIGHLIGHTS — ไฮไลท์ 6 จุด
+  ============================================================ -->
+  <section id="highlights">
+    <div class="container">
+      <div class="highlights-header reveal">
+        <span class="section-label">ทำไมต้องมาพิมาย</span>
+        <h2 class="section-title">อาณาจักรที่แกะสลักไว้ในหิน</h2>
+        <p class="section-subtitle">
+          พิมายไม่ใช่แค่ซากโบราณ — ที่นี่คือประจักษ์พยานแห่งความยิ่งใหญ่ของจักรวรรดิเขมร
+          ที่สร้างขึ้นเป็นศาสนสถานมหายานกว่า 900 ปีก่อน
+        </p>
+      </div>
+
+      <div class="highlights-grid">
+        <div class="highlight-card reveal reveal-delay-1">
+          <div class="highlight-icon">🏛️</div>
+          <div class="highlight-title">บรรพบุรุษของนครวัด</div>
+          <p class="highlight-desc">
+            สร้างก่อนนครวัด และถูกมองว่าเป็นต้นแบบทางสถาปัตยกรรมของวัดอันลือชื่อในกัมพูชา
+            ความสูงของโคปุระเท่ากันทุกประการ
+          </p>
+        </div>
+        <div class="highlight-card reveal reveal-delay-2">
+          <div class="highlight-icon">🐍</div>
+          <div class="highlight-title">สะพานนาคราช</div>
+          <p class="highlight-desc">
+            ข้ามสะพานพญานาค 7 เศียร — สัญลักษณ์แห่งการก้าวจากโลกมนุษย์สู่ดินแดนของเทพเจ้า
+            ทุกรายละเอียดของการแกะสลักบอกเล่าเรื่องราวกว่าพันปี
+          </p>
+        </div>
+        <div class="highlight-card reveal reveal-delay-3">
+          <div class="highlight-icon">🛕</div>
+          <div class="highlight-title">จุดบรรจบของศาสนา</div>
+          <p class="highlight-desc">
+            สถานที่ศักดิ์สิทธิ์หายากที่ผสานพุทธ พราหมณ์ และผีสางเข้าด้วยกัน
+            ทับหลังแสดงภาพพระราม พระกฤษณะ แต่จารึกยืนยันว่าอุทิศแด่มหายาน
+          </p>
+        </div>
+        <div class="highlight-card reveal reveal-delay-1">
+          <div class="highlight-icon">🗺️</div>
+          <div class="highlight-title">จุดเริ่มราชมรรคาโบราณ</div>
+          <p class="highlight-desc">
+            พิมายอยู่ที่ปลายทางเดินทาง 225 กม. เชื่อมสู่นครวัด ตลอดเส้นทางมีปราสาทหิน
+            เช่น พนมรุ้ง เมืองต่ำ เรียงรายเป็นสายสัมพันธ์ระหว่างสองอาณาจักร
+          </p>
+        </div>
+        <div class="highlight-card reveal reveal-delay-2">
+          <div class="highlight-icon">🌳</div>
+          <div class="highlight-title">สระสีงาม — ต้นไทรยักษ์</div>
+          <p class="highlight-desc">
+            ห่างออกไปเพียงไม่กี่นาที — ป่าต้นไทรที่ใหญ่ที่สุดในไทย รากไม้โอบกอดกันราวกับวิญญาณ
+            ชาวบ้านเชื่อว่าที่นี่มีสิ่งศักดิ์สิทธิ์สถิตย์อยู่
+          </p>
+        </div>
+        <div class="highlight-card reveal reveal-delay-3">
+          <div class="highlight-icon">🤖</div>
+          <div class="highlight-title">SmartFlow AI — เยี่ยมชมอย่างชาญฉลาด</div>
+          <p class="highlight-desc">
+            ระบบ AI ตรวจจับฝูงชนในแบบเรียลไทม์ ส่งการแจ้งเตือนผ่าน LINE
+            ให้เจ้าหน้าที่และพ่อค้าแม่ค้าใกล้เคียง เพื่อให้การเยี่ยมชมของคุณปลอดภัยและสะดวกยิ่งขึ้น
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       GALLERY — แกลเลอรีรูปภาพ
+       เพิ่ม/ลบรูปได้ในส่วน .carousel-slide
+  ============================================================ -->
+  <section id="gallery">
+    <div class="container">
+      <div class="gallery-header reveal">
+        <span class="section-label">แกลเลอรี</span>
+        <h2 class="section-title">สัมผัสความยิ่งใหญ่</h2>
+        <p class="section-subtitle">หินโบราณ พื้นที่ศักดิ์สิทธิ์ และเรื่องราวนับพันปีที่จารึกไว้บนหินทราย</p>
+      </div>
+    </div>
+
+    <div class="container" style="margin-top: 0;">
+      <div class="carousel-wrapper reveal">
+        <div class="carousel-track" id="carouselTrack">
+
+          <!-- ---- เพิ่ม/แก้รูปได้ที่นี่ ---- -->
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80&auto=format&fit=crop" alt="ปรางค์ประธาน" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">ปรางค์ประธาน</span>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1602576760025-0b0e16b0d18e?w=800&q=80&auto=format&fit=crop" alt="ระเบียงหิน" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">ระเบียงหินโบราณ</span>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1584804985564-9aaabeb6a9cc?w=800&q=80&auto=format&fit=crop" alt="สะพานนาค" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">สะพานนาคราช</span>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1519222970733-f546218fa6d7?w=800&q=80&auto=format&fit=crop" alt="ลวดลายแกะสลัก" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">ลวดลายแกะสลักบนหินทราย</span>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format&fit=crop" alt="ยามเย็น" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">บรรยากาศยามเย็น</span>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1574236170880-be0b0fef7c8c?w=800&q=80&auto=format&fit=crop" alt="สระสีงาม" loading="lazy" />
+            <div class="carousel-slide-overlay">
+              <span class="carousel-slide-caption">สระสีงาม — ต้นไทรยักษ์</span>
+            </div>
+          </div>
+          <!-- ---- สิ้นสุดส่วนรูป ---- -->
+
+        </div>
+      </div>
+
+      <!-- ปุ่มควบคุม carousel -->
+      <div class="carousel-controls">
+        <button class="carousel-btn" id="prevBtn" aria-label="ก่อนหน้า">←</button>
+        <div class="carousel-dots" id="carouselDots"></div>
+        <button class="carousel-btn" id="nextBtn" aria-label="ถัดไป">→</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HISTORY & INFO — ประวัติและข้อมูล
+  ============================================================ -->
+  <section id="info">
+    <div class="container">
+      <div class="info-layout">
+
+        <!-- รูปภาพ (ซ้าย) -->
+        <div class="info-image-stack reveal">
+          <div class="info-img-main">
+            <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=900&q=85&auto=format&fit=crop" alt="ปราสาทหินพิมาย" />
+          </div>
+          <div class="info-img-float">
+            <img src="https://images.unsplash.com/photo-1602576760025-0b0e16b0d18e?w=600&q=80&auto=format&fit=crop" alt="รายละเอียดหิน" />
+          </div>
+          <div class="info-badge-float">
+            ศตวรรษที่ 16–17
+            <small>ช่วงสร้าง</small>
+          </div>
+        </div>
+
+        <!-- เนื้อหา (ขวา) -->
+        <div class="info-content reveal reveal-delay-2">
+          <span class="section-label">ประวัติและความสำคัญ</span>
+          <h2 class="section-title">พันปีแห่งการสร้างสรรค์</h2>
+
+          <p class="section-subtitle">
+            อุทยานประวัติศาสตร์พิมายปกป้องเมืองโบราณพิมายและปราสาทหินพิมาย
+            ปราสาทขอมที่ใหญ่ที่สุดในประเทศไทย มีชื่อโบราณจากภาษาเขมรว่า <em>"วิมายปุระ"</em>
+            อันเป็นที่มาของชื่อ "พิมาย"
+          </p>
+
+          <!-- ข้อมูลด่วน -->
+          <div class="info-facts">
+            <div class="info-fact">
+              <div class="info-fact-label">ที่ตั้ง</div>
+              <div class="info-fact-value">อำเภอพิมาย จ.นครราชสีมา</div>
+            </div>
+            <div class="info-fact">
+              <div class="info-fact-label">เวลาเปิด-ปิด</div>
+              <div class="info-fact-value">07:00 – 18:00 ทุกวัน</div>
+            </div>
+            <div class="info-fact">
+              <div class="info-fact-label">ค่าเข้า (ต่างชาติ)</div>
+              <div class="info-fact-value">100 บาท</div>
+            </div>
+            <div class="info-fact">
+              <div class="info-fact-label">ค่าเข้า (คนไทย)</div>
+              <div class="info-fact-value">20 บาท</div>
+            </div>
+          </div>
+
+          <p class="info-body-text">
+            การก่อสร้างเริ่มขึ้นในสมัยพระเจ้าชัยวรมันที่ 6 ราว พ.ศ. 1623 ปราสาทหินทรายสร้างขึ้นภายในกำแพงศิลาแลง
+            ต่อมาในสมัยพระเจ้าชัยวรมันที่ 7 (พ.ศ. 1724–1762) มีการเพิ่มห้องสมุด ระเบียง และพระรูปของกษัตริย์
+          </p>
+          <p class="info-body-text">
+            ต่างจากปราสาทขอมส่วนใหญ่ พิมายหันหน้าไปทาง <strong>ทิศตะวันออกเฉียงใต้ — ตรงสู่นครวัด</strong>
+            คูน้ำรูปสี่เหลี่ยมผืนผ้า (1,030 × 565 ม.) มีขนาดใกล้เคียงกับนครวัดเอง
+            ได้รับการบูรณะโดยทีมไทย-ฝรั่งเศส (พ.ศ. 2507–2512) และเปิดอย่างเป็นทางการเมื่อ
+            12 เมษายน 2532 โดย สมเด็จพระเทพรัตนราชสุดาฯ
+          </p>
+
+          <!-- Timeline -->
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">~ พ.ศ. 1623</div>
+                <div class="timeline-text">เริ่มสร้างภายใต้การปกครองของพระเจ้าชัยวรมันที่ 6 สร้างปราสาทหินทรายองค์แรก</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 1651</div>
+                <div class="timeline-text">จารึกแรกที่บันทึกชื่อ "กมรเตง ชคต วิมาย" ยืนยันชื่อโบราณของเมือง</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 1724–1762</div>
+                <div class="timeline-text">พระเจ้าชัยวรมันที่ 7 ขยายเพิ่มระเบียง ห้องสมุด และพระรูปของกษัตริย์</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 2444</div>
+                <div class="timeline-text">Étienne Aymonier นักภูมิศาสตร์ชาวฝรั่งเศสสำรวจและบันทึกซากปราสาทอย่างเป็นทางการครั้งแรก</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 2507–2512</div>
+                <div class="timeline-text">ทีมงานไทย-ฝรั่งเศสบูรณะด้วยวิธี Anastylosis ถอดหินทุกก้อนออกแล้วนำกลับเข้าที่ตามเดิม</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">12 เม.ย. 2532</div>
+                <div class="timeline-text">เปิดเป็นอุทยานประวัติศาสตร์อย่างเป็นทางการโดยสมเด็จพระเทพรัตนราชสุดาฯ อยู่ในความดูแลของกรมศิลปากร</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ARCHITECTURE — สถาปัตยกรรม (พื้นหลังมืด)
+  ============================================================ -->
+  <section id="architecture">
+    <div class="container">
+      <div class="arch-header reveal">
+        <span class="section-label">สถาปัตยกรรม</span>
+        <h2 class="section-title">งานหินชั้นเลิศของจักรวรรดิเขมร</h2>
+        <p class="section-subtitle">
+          สร้างจากหินทราย ศิลาแลง และอิฐ — แต่ละส่วนบอกเล่าจักรวาลวิทยาอันศักดิ์สิทธิ์
+          และความยิ่งใหญ่แห่งราชวงศ์
+        </p>
+      </div>
+      <div class="arch-grid">
+        <div class="arch-card reveal reveal-delay-1">
+          <div class="arch-card-img">
+            <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=500&q=80&auto=format&fit=crop" alt="ปรางค์ประธาน" loading="lazy" />
+          </div>
+          <div class="arch-card-body">
+            <div class="arch-card-title">ปรางค์ประธาน</div>
+            <p class="arch-card-desc">หอคอยกลางสูงตระหง่าน สัญลักษณ์แห่งเขาพระสุเมรุ บ้านของเทพเจ้า ทับหลังแสดงภาพมหากาพย์ฮินดูและพุทธจักรวาล</p>
+          </div>
+        </div>
+        <div class="arch-card reveal reveal-delay-2">
+          <div class="arch-card-img">
+            <img src="https://images.unsplash.com/photo-1584804985564-9aaabeb6a9cc?w=500&q=80&auto=format&fit=crop" alt="สะพานนาค" loading="lazy" />
+          </div>
+          <div class="arch-card-body">
+            <div class="arch-card-title">สะพานนาคราช</div>
+            <p class="arch-card-desc">พญานาค 7 เศียรเฝ้าทางเดินพิธีกรรม แทนการข้ามจากโลกมนุษย์สู่ดินแดนศักดิ์สิทธิ์ของเทพ</p>
+          </div>
+        </div>
+        <div class="arch-card reveal reveal-delay-3">
+          <div class="arch-card-img">
+            <img src="https://images.unsplash.com/photo-1602576760025-0b0e16b0d18e?w=500&q=80&auto=format&fit=crop" alt="โคปุระใต้" loading="lazy" />
+          </div>
+          <div class="arch-card-body">
+            <div class="arch-card-title">โคปุระทิศใต้</div>
+            <p class="arch-card-desc">ประตูทางเข้าหลักหันหน้าสู่นครวัดโดยตรง ความสูงของโคปุระเท่ากับประตูหลักของนครวัดพอดี</p>
+          </div>
+        </div>
+        <div class="arch-card reveal reveal-delay-1">
+          <div class="arch-card-img">
+            <img src="https://images.unsplash.com/photo-1519222970733-f546218fa6d7?w=500&q=80&auto=format&fit=crop" alt="ปรางค์พรหมทัต" loading="lazy" />
+          </div>
+          <div class="arch-card-body">
+            <div class="arch-card-title">ปรางค์พรหมทัต & ปรางค์หินแดง</div>
+            <p class="arch-card-desc">ปรางค์คู่ที่โอบปรางค์ประธาน ปรางค์หินแดงสร้างด้วยศิลาแลงสีน้ำตาลแดง ตัดกับสีขาวของหินทราย</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       MAP SECTION — แผนที่และการเดินทาง
+  ============================================================ -->
+  <section id="map-section">
+    <div class="container">
+      <div class="map-layout reveal">
+        <!-- ข้อมูลด้านซ้าย -->
+        <div class="map-sidebar">
+          <div>
+            <span class="section-label">เดินทางมาพิมาย</span>
+            <h2 class="section-title">การเดินทาง</h2>
+            <p class="section-subtitle">ตั้งอยู่ในอำเภอพิมาย ห่างจากตัวเมืองโคราช 60 กม. ทางเหนือ</p>
+          </div>
+
+          <!-- ข้อมูลติดต่อ-เวลา -->
+          <div class="map-info-list">
+            <div class="map-info-item">
+              <div class="map-info-icon">📍</div>
+              <div>
+                <div class="map-info-label">ที่อยู่</div>
+                <div class="map-info-value">ตำบลในเมือง อำเภอพิมาย<br/>นครราชสีมา 30110</div>
+              </div>
+            </div>
+            <div class="map-info-item">
+              <div class="map-info-icon">🕐</div>
+              <div>
+                <div class="map-info-label">เวลาเปิด-ปิด</div>
+                <div class="map-info-value">ทุกวัน 07:00 – 18:00 น.</div>
+              </div>
+            </div>
+            <div class="map-info-item">
+              <div class="map-info-icon">🚌</div>
+              <div>
+                <div class="map-info-label">โดยรถโดยสาร</div>
+                <div class="map-info-value">จากขนส่งโคราช ออกทุก 30 นาที<br/>ใช้เวลาประมาณ 1 ชั่วโมง</div>
+              </div>
+            </div>
+            <div class="map-info-item">
+              <div class="map-info-icon">🚗</div>
+              <div>
+                <div class="map-info-label">โดยรถยนต์</div>
+                <div class="map-info-value">ทางหลวง 2 → ทางหลวง 206<br/>60 กม. จากใจกลางเมืองโคราช</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- สถานที่ใกล้เคียง -->
+          <div class="map-nearby">
+            <div class="map-nearby-title">สถานที่ใกล้เคียง</div>
+            <div class="map-nearby-item">
+              <div class="map-nearby-dot"></div>
+              <div class="map-nearby-name">สระสีงาม (ต้นไทรยักษ์)</div>
+              <div class="map-nearby-dist">0.8 กม.</div>
+            </div>
+            <div class="map-nearby-item">
+              <div class="map-nearby-dot"></div>
+              <div class="map-nearby-name">พิพิธภัณฑ์แห่งชาติพิมาย</div>
+              <div class="map-nearby-dist">0.3 กม.</div>
+            </div>
+            <div class="map-nearby-item">
+              <div class="map-nearby-dot"></div>
+              <div class="map-nearby-name">ตลาดกลางคืนพิมาย</div>
+              <div class="map-nearby-dist">0.5 กม.</div>
+            </div>
+            <div class="map-nearby-item">
+              <div class="map-nearby-dot"></div>
+              <div class="map-nearby-name">ปราสาทพนมรุ้ง</div>
+              <div class="map-nearby-dist">~2 ชั่วโมง</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Maps -->
+        <div class="map-iframe-wrap">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3837.9024560764835!2d102.49254!3d15.22222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31174e06a73b36c1%3A0x68b38a54cc25b573!2sPhimai%20Historical%20Park!5e0!3m2!1sth!2sth!4v1710000000000!5m2!1sth!2sth"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="แผนที่อุทยานประวัติศาสตร์พิมาย"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VISITOR TIPS — คำแนะนำนักท่องเที่ยว
+  ============================================================ -->
+  <section id="visit-tips" style="padding: 80px 0;">
+    <div class="container">
+      <div class="tips-header reveal">
+        <span class="section-label">คู่มือนักท่องเที่ยว</span>
+        <h2 class="section-title">วางแผนการมาเยี่ยมชม</h2>
+        <p class="section-subtitle">ทุกสิ่งที่ต้องรู้เพื่อการท่องเที่ยวที่สะดวกสบายและประทับใจ</p>
+      </div>
+      <div class="tips-grid">
+        <div class="tip-card reveal reveal-delay-1">
+          <div class="tip-icon">🌤️</div>
+          <div class="tip-title">ช่วงเวลาที่ดีที่สุด</div>
+          <p class="tip-text">พฤศจิกายน–กุมภาพันธ์ อากาศเย็นสบายสุดยอดสำหรับการสำรวจ หลีกเลี่ยงช่วงกลางวันในหน้าร้อน (มีนาคม–พฤษภาคม)</p>
+        </div>
+        <div class="tip-card reveal reveal-delay-2">
+          <div class="tip-icon">👒</div>
+          <div class="tip-title">การแต่งกาย</div>
+          <p class="tip-text">ใส่เสื้อผ้าที่เบาและระบายอากาศดี พกหมวกและครีมกันแดดเป็นสิ่งจำเป็น ควรพกร่มเพราะพื้นที่มีร่มเงาน้อย</p>
+        </div>
+        <div class="tip-card reveal reveal-delay-3">
+          <div class="tip-icon">⏱️</div>
+          <div class="tip-title">ระยะเวลาที่ใช้</div>
+          <p class="tip-text">ควรใช้เวลา 2–3 ชั่วโมงในการสำรวจอุทยานและพิพิธภัณฑ์ บวกเพิ่มอีก 1 ชั่วโมงหากต้องการไปสระสีงาม</p>
+        </div>
+        <div class="tip-card reveal reveal-delay-1">
+          <div class="tip-icon">🗣️</div>
+          <div class="tip-title">ไกด์อาสาสมัคร</div>
+          <p class="tip-text">มีไกด์อาสาสมัครที่พูดภาษาอังกฤษได้ในวันทำการ สอบถามที่ช่องจำหน่ายตั๋วเมื่อมาถึง</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CHATBOT — AI Guide
+  ============================================================ -->
+  <section id="chatbot">
+    <div class="container">
+      <div class="chatbot-layout">
+
+        <!-- ข้อมูลซ้าย -->
+        <div class="chatbot-info reveal">
+          <span class="section-label">AI ไกด์</span>
+          <h2 class="section-title">ถามทุกอย่างเกี่ยวกับพิมาย</h2>
+          <p class="section-subtitle">
+            AI ไกด์ของเรารู้ทุกอย่างเกี่ยวกับอุทยานประวัติศาสตร์พิมาย
+            ตั้งแต่เวลาเปิด ราคาตั๋ว ไปจนถึงความหมายของลวดลายโบราณ พร้อมให้บริการ 24 ชั่วโมง
+          </p>
+
+          <!-- ปุ่มหัวข้อ (คลิกแล้วส่งคำถามอัตโนมัติ) -->
+          <div class="chat-topic-tags">
+            <span class="chat-tag" onclick="sendChatQuick('เวลาเปิด-ปิดกี่โมง')">⏰ เวลาเปิด-ปิด</span>
+            <span class="chat-tag" onclick="sendChatQuick('ค่าเข้าชมเท่าไหร่')">🎟️ ค่าเข้าชม</span>
+            <span class="chat-tag" onclick="sendChatQuick('ประวัติความเป็นมาของพิมาย')">📜 ประวัติ</span>
+            <span class="chat-tag" onclick="sendChatQuick('เดินทางมาพิมายยังไง')">🚌 การเดินทาง</span>
+            <span class="chat-tag" onclick="sendChatQuick('ต้องดูอะไรบ้างที่พิมาย')">🏛️ สิ่งน่าชม</span>
+            <span class="chat-tag" onclick="sendChatQuick('ระบบ SmartFlow AI คืออะไร')">🤖 SmartFlow AI</span>
+            <span class="chat-tag" onclick="sendChatQuick('ร้านอาหารใกล้พิมายมีที่ไหนบ้าง')">🍜 อาหารใกล้เคียง</span>
+            <span class="chat-tag" onclick="sendChatQuick('มีที่จอดรถไหม')">🅿️ ที่จอดรถ</span>
+          </div>
+        </div>
+
+        <!-- หน้าต่าง Chat (ขวา) -->
+        <div class="reveal reveal-delay-2">
+          <div class="chat-window">
+            <!-- Header -->
+            <div class="chat-header">
+              <div class="chat-avatar">🤖</div>
+              <div>
+                <div class="chat-header-name">PhimAI ไกด์</div>
+                <div class="chat-header-status">
+                  <div class="chat-status-dot"></div>
+                  ออนไลน์ · ขับเคลื่อนด้วย AI
+                </div>
+              </div>
+            </div>
+
+            <!-- ข้อความ -->
+            <div class="chat-messages" id="chatMessages">
+              <!-- ข้อความเริ่มต้นจาก bot -->
+              <div class="msg-row bot">
+                <div class="msg-avatar-sm">🤖</div>
+                <div>
+                  <div class="msg-bubble">
+                    สวัสดีครับ! 👋 ยินดีต้อนรับสู่อุทยานประวัติศาสตร์พิมาย<br/>
+                    ผมเป็น AI ไกด์ ถามได้เลยครับ ไม่ว่าจะเป็นเรื่องประวัติ ค่าเข้า การเดินทาง หรือสถานที่น่าสนใจ
+                  </div>
+                  <div class="msg-time">เพิ่งได้รับ</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ปุ่มตอบเร็ว -->
+            <div class="quick-replies" id="quickReplies">
+              <button class="quick-reply" onclick="sendChatQuick('เวลาเปิด-ปิด')">⏰ เวลาเปิด</button>
+              <button class="quick-reply" onclick="sendChatQuick('ค่าเข้าชม')">🎟️ ค่าตั๋ว</button>
+              <button class="quick-reply" onclick="sendChatQuick('เดินทางยังไง')">🗺️ การเดินทาง</button>
+            </div>
+
+            <!-- ช่องพิมพ์ -->
+            <div class="chat-input-row">
+              <input
+                type="text"
+                class="chat-input"
+                id="chatInput"
+                placeholder="ถามเกี่ยวกับพิมาย..."
+              />
+              <button class="chat-send-btn" id="chatSendBtn" aria-label="ส่ง">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CONTACT — ติดต่อ
+  ============================================================ -->
+  <section id="contact">
+    <div class="container">
+      <div class="contact-layout">
+
+        <!-- ซ้าย: ข้อมูลติดต่อ -->
+        <div class="contact-left reveal">
+          <span class="section-label">ติดต่อเรา</span>
+          <h2 class="section-title">ติดต่อ &<br/>หาเราเจอ</h2>
+          <p class="section-subtitle">
+            ติดต่อผ่าน LINE โทรศัพท์ หรือ Facebook เจ้าหน้าที่พูดภาษาไทยและภาษาอังกฤษ
+            พร้อมช่วยวางแผนการเยี่ยมชมของคุณ
+          </p>
+
+          <!-- การ์ดติดต่อ -->
+          <div class="contact-cards">
+            <a href="https://line.me/ti/p/@phimaipark" target="_blank" class="contact-card">
+              <div class="contact-card-icon line">💬</div>
+              <div>
+                <div class="contact-card-label">LINE Official</div>
+                <div class="contact-card-value">@PhimaiHistoricalPark</div>
+              </div>
+              <div class="contact-card-arrow">→</div>
+            </a>
+            <a href="tel:+66441471568" class="contact-card">
+              <div class="contact-card-icon phone">📞</div>
+              <div>
+                <div class="contact-card-label">โทรศัพท์</div>
+                <div class="contact-card-value">044-471 568</div>
+              </div>
+              <div class="contact-card-arrow">→</div>
+            </a>
+            <a href="https://www.facebook.com/PhimaiHistoricalPark" target="_blank" class="contact-card">
+              <div class="contact-card-icon fb">📘</div>
+              <div>
+                <div class="contact-card-label">Facebook</div>
+                <div class="contact-card-value">Phimai Historical Park</div>
+              </div>
+              <div class="contact-card-arrow">→</div>
+            </a>
+            <a href="mailto:phimai_finearts12@hotmail.com" class="contact-card">
+              <div class="contact-card-icon email">✉️</div>
+              <div>
+                <div class="contact-card-label">อีเมล</div>
+                <div class="contact-card-value">phimai_finearts12@hotmail.com</div>
+              </div>
+              <div class="contact-card-arrow">→</div>
+            </a>
+          </div>
+
+          <!-- ตารางเวลา -->
+          <div class="hours-table">
+            <div class="hours-table-title">เวลาให้บริการ</div>
+            <div class="hours-row">
+              <span>อุทยานประวัติศาสตร์</span>
+              <span>07:00 – 18:00 (ทุกวัน)</span>
+            </div>
+            <div class="hours-row">
+              <span>พิพิธภัณฑ์แห่งชาติพิมาย</span>
+              <span>09:00 – 16:00 (ทุกวัน)</span>
+            </div>
+            <div class="hours-row">
+              <span>SmartFlow AI Control Centre</span>
+              <span>24 ชั่วโมง / 7 วัน</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ขวา: ฟอร์มติดต่อ -->
+        <div class="contact-form reveal reveal-delay-2">
+          <h3>ส่งข้อความถึงเรา</h3>
+          <div class="form-group">
+            <label class="form-label">ชื่อ-นามสกุล</label>
+            <input type="text" class="form-input" placeholder="เช่น สมชาย ใจดี" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" class="form-input" placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">หัวข้อ</label>
+            <input type="text" class="form-input" placeholder="สอบถามข้อมูลการท่องเที่ยว..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">ข้อความ</label>
+            <textarea class="form-textarea" placeholder="ถามได้เลย ไม่ว่าจะเป็นเรื่องกรุ๊ปทัวร์ ความพิเศษในการเข้าชม หรือสิ่งอำนวยความสะดวก..."></textarea>
+          </div>
+          <button class="form-submit" id="formSubmitBtn">ส่งข้อความ →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo nav-logo">
+          <div class="nav-logo-icon">🏛️</div>
+          <div class="nav-logo-text">
+            อุทยานประวัติศาสตร์พิมาย
+            <span>Phimai Historical Park · กรมศิลปากร</span>
+          </div>
+        </div>
+        <ul class="footer-nav">
+          <li><a href="#highlights">ไฮไลท์</a></li>
+          <li><a href="#info">ประวัติ</a></li>
+          <li><a href="#architecture">สถาปัตยกรรม</a></li>
+          <li><a href="#map-section">แผนที่</a></li>
+          <li><a href="#chatbot">AI ไกด์</a></li>
+          <li><a href="#contact">ติดต่อ</a></li>
+        </ul>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2568 อุทยานประวัติศาสตร์พิมาย · กรมศิลปากร กระทรวงวัฒนธรรม</div>
+        <div class="footer-credit">ขับเคลื่อนด้วย <span>SmartFlow AI</span> · เทคโนโลยีเพื่ออนาคตของมรดกวัฒนธรรม</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript หลัก -->
+  <script src="js/main.js"></script>
+
+</body>
+</html>

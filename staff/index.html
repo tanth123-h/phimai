@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartFlow AI — Staff Dashboard · พิมาย</title>
+  <!-- ⚠️ หน้านี้ไม่เชื่อมต่อจากหน้าสาธารณะ (index.html) -->
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- สไตล์เจ้าหน้าที่ (ไม่ใช้ style.css หน้าหลัก) -->
+  <link rel="stylesheet" href="css/staff.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       LOGIN SCREEN — หน้าล็อกอิน (PIN: 1234)
+       เปลี่ยน PIN ได้ใน staff/js/staff.js — ตัวแปร STAFF_PIN
+  ============================================================ -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">🏛️</div>
+      <div class="login-title">SmartFlow AI</div>
+      <div class="login-subtitle">Staff Portal · อุทยานประวัติศาสตร์พิมาย</div>
+      <div class="login-badge">เฉพาะเจ้าหน้าที่เท่านั้น</div>
+
+      <label class="login-label" for="pinInput">รหัสผ่านเจ้าหน้าที่</label>
+      <input
+        type="password"
+        id="pinInput"
+        class="login-input"
+        placeholder="••••"
+        maxlength="6"
+        autocomplete="current-password"
+      />
+      <button class="login-btn" id="loginBtn">เข้าสู่ระบบ →</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DASHBOARD — แสดงหลังจาก Login สำเร็จ
+  ============================================================ -->
+  <div id="dashboard">
+
+    <!-- ---- TOP BAR ---- -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">🏛️</div>
+        <div class="topbar-name">
+          SmartFlow AI
+          <span>อุทยานประวัติศาสตร์พิมาย · Staff Portal</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          ● LIVE
+        </div>
+        <div class="topbar-clock" id="dashClock">00:00:00</div>
+        <div class="topbar-date" id="dashDate">—</div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- ปุ่มทดสอบ LINE -->
+        <button class="topbar-btn" id="testLineBtn">
+          💬 ทดสอบ LINE
+        </button>
+        <!-- ปุ่มฉุกเฉิน -->
+        <button class="topbar-btn danger" id="emergencyBtn">
+          🚨 Emergency
+        </button>
+        <!-- ออกจากระบบ -->
+        <button class="topbar-btn" id="logoutBtn">
+          ← ออกจากระบบ
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- STAT ROW — ตัวเลขสรุปด้านบน ---- -->
+    <!--
+      แก้ชื่อ Label ในแต่ละ cell ได้ที่นี่
+      ค่าตัวเลขจะถูก update โดย staff.js ใน renderStats()
+    -->
+    <div class="stat-row">
+      <div class="stat-cell" id="statTotal">
+        <div class="stat-cell-label">👥 ผู้เยี่ยมชมทั้งหมด</div>
+        <div class="stat-cell-value">—</div>
+        <div class="stat-cell-delta">—</div>
+      </div>
+      <div class="stat-cell" id="statHigh">
+        <div class="stat-cell-label">🔴 โซนวิกฤต</div>
+        <div class="stat-cell-value">—</div>
+        <div class="stat-cell-delta">—</div>
+      </div>
+      <div class="stat-cell" id="statMedium">
+        <div class="stat-cell-label">🟡 โซนเฝ้าระวัง</div>
+        <div class="stat-cell-value">—</div>
+        <div class="stat-cell-delta">—</div>
+      </div>
+      <div class="stat-cell" id="statNotif">
+        <div class="stat-cell-label">🔔 การแจ้งเตือน</div>
+        <div class="stat-cell-value">—</div>
+        <div class="stat-cell-delta">—</div>
+      </div>
+      <div class="stat-cell" id="statLine">
+        <div class="stat-cell-label">💬 LINE ส่งแล้ว</div>
+        <div class="stat-cell-value">—</div>
+        <div class="stat-cell-delta">—</div>
+      </div>
+    </div>
+
+    <!-- ---- MAIN BODY ---- -->
+    <div class="dash-body">
+
+      <!-- ==================================================
+           แผนที่ปราสาทแบบ SVG (ซ้าย)
+           Zone สร้างจาก staff.js → renderMap()
+           คลิกที่ Zone เพื่อดูข้อมูล
+      ================================================== -->
+      <div class="map-panel">
+        <div class="panel-header">
+          <div class="panel-title">แผนที่อุทยาน · ตรวจจับฝูงชน Real-time</div>
+          <div class="panel-actions">
+            <button class="panel-btn active">ทุกโซน</button>
+            <button class="panel-btn">วิกฤต</button>
+            <button class="panel-btn">กล้อง</button>
+          </div>
+        </div>
+
+        <!-- แผนที่ SVG — สร้างโดย staff.js -->
+        <div class="map-svg-wrap">
+          <svg id="mapSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <!-- ตำนาน -->
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot high"></div>เกินความจุ / วิกฤต</div>
+          <div class="legend-item"><div class="legend-dot medium"></div>ปานกลาง / เฝ้าระวัง</div>
+          <div class="legend-item"><div class="legend-dot low"></div>ปกติ / เบาบาง</div>
+          <div class="legend-item"><div class="legend-dot alert"></div>ตำแหน่งกล้อง AI</div>
+        </div>
+      </div>
+
+      <!-- ==================================================
+           แผง Notifications (ขวา)
+           การ์ดสร้างโดย staff.js → renderNotifPanel()
+           การแจ้งเตือนใหม่จะเพิ่มขึ้นอัตโนมัติทุก ~10 วินาที
+      ================================================== -->
+      <div class="notif-panel">
+        <div class="panel-header">
+          <div class="panel-title">การแจ้งเตือน · LINE Alerts</div>
+        </div>
+
+        <!-- รายการแจ้งเตือน — populate โดย JS -->
+        <div id="notifList"></div>
+
+      </div>
+
+      <!-- ==================================================
+           แถววิเคราะห์ (ล่าง)
+      ================================================== -->
+      <div class="analytics-row">
+
+        <!-- กราฟแท่งผู้เยี่ยมชมรายชั่วโมง -->
+        <div class="chart-section">
+          <div class="chart-title">📊 จำนวนผู้เยี่ยมชมรายชั่วโมง (วันนี้)</div>
+          <div class="bar-chart" id="barChart">
+            <!-- populate โดย JS -->
+          </div>
+        </div>
+
+        <!-- สถิติเจ้าหน้าที่ -->
+        <div class="mini-stat">
+          <div class="mini-stat-label">👮 เจ้าหน้าที่ on-duty</div>
+          <div class="mini-stat-value val-green">8</div>
+          <div class="mini-stat-sub">จาก 10 คน · 2 คน off</div>
+        </div>
+
+        <!-- ผู้ค้าแผงลอย -->
+        <div class="mini-stat">
+          <div class="mini-stat-label">🛍️ ผู้ค้าที่แจ้งแล้ว</div>
+          <div class="mini-stat-value val-orange">2</div>
+          <div class="mini-stat-sub">รอยืนยัน 2 ราย</div>
+
+          <!-- รายชื่อผู้ค้า — populate โดย JS -->
+          <div id="vendorList" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- เวลาเฉลี่ยตอบสนอง -->
+        <div class="mini-stat">
+          <div class="mini-stat-label">⚡ เวลาตอบสนองเฉลี่ย</div>
+          <div class="mini-stat-value val-green">1.8<span style="font-size:0.9rem;color:var(--text-dim)"> นาที</span></div>
+          <div class="mini-stat-sub">ตั้งแต่แจ้งเตือน → เจ้าหน้าที่ถึงจุด</div>
+        </div>
+
+      </div>
+    </div><!-- end dash-body -->
+
+  </div><!-- end dashboard -->
+
+  <!-- Toast container (pop-up notifications) -->
+  <div id="toastContainer"></div>
+
+  <!-- JavaScript เจ้าหน้าที่ -->
+  <script src="js/staff.js"></script>
+
+</body>
+</html>
