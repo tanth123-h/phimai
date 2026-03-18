@@ -624,7 +624,6 @@ body {
 }
 
 /* Chart bars */
-.chart-section {}
 .chart-title {
   font-size: 0.72rem;
   font-weight: 700;
@@ -806,12 +805,158 @@ body {
   to   { opacity: 0; transform: translateX(30px); max-height: 0; padding: 0; }
 }
 .toast-icon { font-size: 1.2rem; flex-shrink: 0; }
-.toast-content {}
 .toast-title { font-size: 0.82rem; font-weight: 700; color: var(--text-bright); margin-bottom: 2px; }
 .toast-body  { font-size: 0.75rem; color: var(--text-mid); line-height: 1.45; }
 
 /* ----------------------------------------------------------------
-   11. RESPONSIVE
+   11. MONTHLY ANALYTICS SECTION
+---------------------------------------------------------------- */
+.monthly-section {
+  margin: 0;
+  padding: 24px 28px 32px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+}
+
+.monthly-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.monthly-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.monthly-meta {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--orange-light);
+  letter-spacing: 0.06em;
+}
+
+/* กราฟ SVG */
+.monthly-chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 8px 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* ตาราง */
+.monthly-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.monthly-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.monthly-table th {
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.monthly-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mid);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  vertical-align: middle;
+}
+
+.monthly-table tr:last-child td { border-bottom: none; }
+
+.monthly-table tr:hover td {
+  background: rgba(217,123,53,0.04);
+  color: var(--text-bright);
+}
+
+.monthly-table td:first-child {
+  font-family: var(--font-ui);
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.month-highlight-max td { background: rgba(34,197,94,0.06) !important; }
+.month-highlight-min td { background: rgba(59,130,246,0.06) !important; }
+
+.month-delta-up   { color: var(--green) !important; }
+.month-delta-down { color: var(--red)   !important; }
+.month-delta-flat { color: var(--text-dim) !important; }
+
+.month-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-family: var(--font-ui);
+  padding: 3px 9px;
+  border-radius: 50px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.month-badge-peak   { background: rgba(34,197,94,0.15);  color: #86efac; border: 1px solid rgba(34,197,94,0.25); }
+.month-badge-low    { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+.month-badge-high   { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+.month-badge-normal { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
+
+/* บทวิเคราะห์ */
+.monthly-analysis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.analysis-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.analysis-card-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.analysis-card-body {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.analysis-card-body strong {
+  color: var(--orange-light);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------
+   12. RESPONSIVE
 ---------------------------------------------------------------- */
 @media (max-width: 1200px) {
   .dash-body { grid-template-columns: 1fr 340px; }

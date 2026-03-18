@@ -201,6 +201,39 @@
       </div>
     </div><!-- end dash-body -->
 
+    <!-- ==================================================
+         แถววิเคราะห์รายเดือน — สถิติ 12 เดือน
+    ================================================== -->
+    <div class="monthly-section">
+      <div class="monthly-header">
+        <div class="monthly-title">📅 สถิติผู้เยี่ยมชมรายเดือน · ปี 2567</div>
+        <div class="monthly-meta" id="monthlyMeta">—</div>
+      </div>
+
+      <!-- กราฟเส้น SVG -->
+      <div class="monthly-chart-wrap">
+        <svg id="monthlyChartSvg" width="100%" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <!-- ตารางสรุป -->
+      <div class="monthly-table-wrap">
+        <table class="monthly-table" id="monthlyTable">
+          <thead>
+            <tr>
+              <th>เดือน</th>
+              <th>ผู้เยี่ยมชม</th>
+              <th>เทียบเดือนก่อน</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- บทวิเคราะห์ -->
+      <div class="monthly-analysis" id="monthlyAnalysis"></div>
+    </div>
+
   </div><!-- end dashboard -->
 
   <!-- Toast container (pop-up notifications) -->

@@ -136,6 +136,7 @@ function initDashboard() {
   renderVendorList();
   renderBarChart();
   startSimulation();
+  initMonthlyAnalytics();
 }
 
 /* ================================================================
@@ -586,6 +587,231 @@ function simulateEvent() {
   simEventIndex++;
   event();
 }
+
+
+/* ================================================================
+   17. MONTHLY ANALYTICS — สถิติผู้เยี่ยมชมรายเดือน 12 เดือน
+================================================================ */
+
+const MONTHLY_DATA = [
+  { month: 'ม.ค.',  monthEn: 'Jan', visitors: 14820, note: 'เปิดปีใหม่ นักท่องเที่ยวไทยเยอะ' },
+  { month: 'ก.พ.',  monthEn: 'Feb', visitors: 13540, note: 'ท่องเที่ยวช่วงปกติ' },
+  { month: 'มี.ค.', monthEn: 'Mar', visitors: 18960, note: 'นักเรียน-นักศึกษาทัศนศึกษาช่วงปิดเทอม' },
+  { month: 'เม.ย.', monthEn: 'Apr', visitors: 24310, note: 'สงกรานต์ — พีคสูงสุดของปี' },
+  { month: 'พ.ค.',  monthEn: 'May', visitors: 16480, note: 'หลังสงกรานต์ยอดลดลง' },
+  { month: 'มิ.ย.', monthEn: 'Jun', visitors: 11230, note: 'หน้าฝน นักท่องเที่ยวน้อยลง' },
+  { month: 'ก.ค.',  monthEn: 'Jul', visitors: 9870,  note: 'ต่ำสุดของปี — ฝนตกหนัก' },
+  { month: 'ส.ค.',  monthEn: 'Aug', visitors: 10540, note: 'เริ่มฟื้นตัวเล็กน้อย' },
+  { month: 'ก.ย.',  monthEn: 'Sep', visitors: 12660, note: 'วันหยุดยาว-อาเซียน' },
+  { month: 'ต.ค.',  monthEn: 'Oct', visitors: 19430, note: 'งานเทศกาลปราสาทพิมายไนท์บาซาร์' },
+  { month: 'พ.ย.',  monthEn: 'Nov', visitors: 22150, note: 'งานแสดงแสงสีเสียงปราสาทพิมาย' },
+  { month: 'ธ.ค.',  monthEn: 'Dec', visitors: 21080, note: 'ปีใหม่ นักท่องเที่ยวต่างชาติเพิ่ม' },
+];
+
+function initMonthlyAnalytics() {
+  renderMonthlyChart();
+  renderMonthlyTable();
+  renderMonthlyAnalysis();
+
+  const total = MONTHLY_DATA.reduce((s, m) => s + m.visitors, 0);
+  const avg   = Math.round(total / 12);
+  const metaEl = document.getElementById('monthlyMeta');
+  if (metaEl) metaEl.textContent = `รวม ${total.toLocaleString()} คน · เฉลี่ย ${avg.toLocaleString()} คน/เดือน`;
+}
+
+/* ---- Line Chart SVG ---- */
+function renderMonthlyChart() {
+  const svg = document.getElementById('monthlyChartSvg');
+  if (!svg) return;
+
+  const W = 900, H = 160;
+  const padL = 54, padR = 20, padT = 18, padB = 32;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  const vals    = MONTHLY_DATA.map(m => m.visitors);
+  const maxVal  = Math.max(...vals);
+  const minVal  = Math.min(...vals);
+  const maxIdx  = vals.indexOf(maxVal);
+  const minIdx  = vals.indexOf(minVal);
+
+  const xStep = chartW / (MONTHLY_DATA.length - 1);
+  const pts   = vals.map((v, i) => ({
+    x: padL + i * xStep,
+    y: padT + chartH - ((v - minVal) / (maxVal - minVal + 1000)) * chartH,
+  }));
+
+  /* gradient area fill */
+  const defs = `
+    <defs>
+      <linearGradient id="mgGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#D97B35" stop-opacity="0.28"/>
+        <stop offset="100%" stop-color="#D97B35" stop-opacity="0.01"/>
+      </linearGradient>
+    </defs>`;
+
+  /* area path */
+  const areaPath = [
+    `M ${pts[0].x} ${padT + chartH}`,
+    ...pts.map(p => `L ${p.x} ${p.y}`),
+    `L ${pts[pts.length-1].x} ${padT + chartH}`,
+    'Z'
+  ].join(' ');
+
+  /* line path */
+  const linePath = pts.map((p,i) => `${i===0?'M':'L'} ${p.x} ${p.y}`).join(' ');
+
+  /* grid lines */
+  let gridLines = '';
+  const gridCount = 4;
+  for (let i = 0; i <= gridCount; i++) {
+    const y = padT + (chartH / gridCount) * i;
+    const val = Math.round(maxVal - ((maxVal - minVal) / gridCount) * i);
+    gridLines += `
+      <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"
+            stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <text x="${padL - 6}" y="${y + 4}" text-anchor="end"
+            font-family="'JetBrains Mono',monospace" font-size="9"
+            fill="rgba(255,255,255,0.25)">${(val/1000).toFixed(0)}k</text>`;
+  }
+
+  /* month labels */
+  let labels = '';
+  MONTHLY_DATA.forEach((m, i) => {
+    labels += `
+      <text x="${pts[i].x}" y="${H - 4}" text-anchor="middle"
+            font-family="'Sarabun',sans-serif" font-size="9.5"
+            fill="${i === maxIdx ? '#22C55E' : i === minIdx ? '#3B82F6' : 'rgba(255,255,255,0.35)'}"
+            font-weight="${(i===maxIdx||i===minIdx)?'700':'400'}">${m.month}</text>`;
+  });
+
+  /* data points */
+  let dots = '';
+  pts.forEach((p, i) => {
+    const isMax = i === maxIdx;
+    const isMin = i === minIdx;
+    const r     = isMax || isMin ? 5 : 3;
+    const fill  = isMax ? '#22C55E' : isMin ? '#3B82F6' : '#D97B35';
+    dots += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="#0A0600" stroke-width="1.5"/>`;
+    if (isMax || isMin) {
+      const label = isMax ? `▲ ${(maxVal/1000).toFixed(1)}k` : `▼ ${(minVal/1000).toFixed(1)}k`;
+      const dy = isMax ? -10 : 14;
+      dots += `<text x="${p.x}" y="${p.y + dy}" text-anchor="middle"
+                     font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700"
+                     fill="${fill}">${label}</text>`;
+    }
+  });
+
+  svg.innerHTML = `
+    ${defs}
+    ${gridLines}
+    <path d="${areaPath}" fill="url(#mgGrad)"/>
+    <path d="${linePath}" fill="none" stroke="#D97B35" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    ${labels}
+  `;
+}
+
+/* ---- Monthly Table ---- */
+function renderMonthlyTable() {
+  const tbody = document.getElementById('monthlyTableBody');
+  if (!tbody) return;
+
+  const vals   = MONTHLY_DATA.map(m => m.visitors);
+  const maxVal = Math.max(...vals);
+  const minVal = Math.min(...vals);
+
+  tbody.innerHTML = '';
+  MONTHLY_DATA.forEach((m, i) => {
+    const prev  = i > 0 ? MONTHLY_DATA[i-1].visitors : null;
+    const delta = prev !== null ? m.visitors - prev : null;
+    const pct   = prev !== null ? ((delta / prev) * 100).toFixed(1) : null;
+
+    const isMax = m.visitors === maxVal;
+    const isMin = m.visitors === minVal;
+
+    let deltaHtml = '<span class="month-delta-flat">—</span>';
+    if (delta !== null) {
+      if (delta > 0)
+        deltaHtml = `<span class="month-delta-up">▲ +${delta.toLocaleString()} (+${pct}%)</span>`;
+      else if (delta < 0)
+        deltaHtml = `<span class="month-delta-down">▼ ${delta.toLocaleString()} (${pct}%)</span>`;
+      else
+        deltaHtml = `<span class="month-delta-flat">→ 0 (0%)</span>`;
+    }
+
+    let badge = '';
+    if (isMax)        badge = '<span class="month-badge month-badge-peak">🏆 สูงสุด</span>';
+    else if (isMin)   badge = '<span class="month-badge month-badge-low">📉 ต่ำสุด</span>';
+    else if (m.visitors > 18000) badge = '<span class="month-badge month-badge-high">🔥 ช่วงพีค</span>';
+    else              badge = '<span class="month-badge month-badge-normal">ปกติ</span>';
+
+    const tr = document.createElement('tr');
+    if (isMax) tr.className = 'month-highlight-max';
+    if (isMin) tr.className = 'month-highlight-min';
+    tr.innerHTML = `
+      <td>${m.month}</td>
+      <td>${m.visitors.toLocaleString()}</td>
+      <td>${deltaHtml}</td>
+      <td>${badge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---- Analysis Cards ---- */
+function renderMonthlyAnalysis() {
+  const el = document.getElementById('monthlyAnalysis');
+  if (!el) return;
+
+  const vals   = MONTHLY_DATA.map(m => m.visitors);
+  const maxVal = Math.max(...vals);
+  const minVal = Math.min(...vals);
+  const maxM   = MONTHLY_DATA[vals.indexOf(maxVal)];
+  const minM   = MONTHLY_DATA[vals.indexOf(minVal)];
+  const total  = vals.reduce((a,b) => a+b, 0);
+  const avg    = Math.round(total / 12);
+  const yoy    = '+8.4%'; // สมมุติเทียบปีที่แล้ว
+
+  el.innerHTML = `
+    <div class="analysis-card">
+      <div class="analysis-card-title">🏆 เดือนที่ผู้เยี่ยมชมมากที่สุด</div>
+      <div class="analysis-card-body">
+        <strong>${maxM.month} — ${maxVal.toLocaleString()} คน</strong><br>
+        ${maxM.note} ทำให้ยอดผู้เยี่ยมชมพุ่งสูงกว่าค่าเฉลี่ยถึง <strong>${Math.round((maxVal/avg-1)*100)}%</strong>
+        ควรเพิ่มเจ้าหน้าที่และเปิดช่องทางเข้าชมให้เพียงพอในช่วงนี้
+      </div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-title">📉 เดือนที่ผู้เยี่ยมชมน้อยที่สุด</div>
+      <div class="analysis-card-body">
+        <strong>${minM.month} — ${minVal.toLocaleString()} คน</strong><br>
+        ${minM.note} ยอดต่ำกว่าค่าเฉลี่ย <strong>${Math.round((1-minVal/avg)*100)}%</strong>
+        เหมาะสำหรับการซ่อมบำรุงและฝึกอบรมเจ้าหน้าที่ประจำปี
+      </div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-title">📊 แนวโน้มและฤดูกาล</div>
+      <div class="analysis-card-body">
+        พบ <strong>3 ช่วงพีค</strong> ชัดเจน: <strong>เม.ย.</strong> (สงกรานต์),
+        <strong>พ.ย.</strong> (เทศกาลแสงสีเสียง) และ <strong>ธ.ค.</strong> (ปีใหม่)
+        ช่วง <strong>มิ.ย.–ส.ค.</strong> เป็น Low Season ฝนตก ยอดดิ่งลงต่ำสุด
+      </div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-card-title">📈 ภาพรวมทั้งปี</div>
+      <div class="analysis-card-body">
+        รวม <strong>${total.toLocaleString()} คน</strong> · เฉลี่ย <strong>${avg.toLocaleString()} คน/เดือน</strong><br>
+        เติบโต <strong>${yoy}</strong> เทียบปีก่อน · สัดส่วน High Season (เม.ย., ต.ค.–ธ.ค.)
+        คิดเป็น <strong>${Math.round(([24310,19430,22150,21080].reduce((a,b)=>a+b,0)/total)*100)}%</strong> ของยอดทั้งปี
+      </div>
+    </div>
+  `;
+}
+
 
 function addNotif(data) {
   const panel = document.getElementById('notifList');
