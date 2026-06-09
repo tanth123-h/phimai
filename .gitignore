@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.env
+line_alert_config.json
+line_last_webhook.json
+visitor_history_log.csv
+*.log
+*.pt

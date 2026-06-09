@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>กล้อง Live · SmartFlow AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; font-family: 'Sarabun', sans-serif; color: #fff; min-height: 100vh; padding: 20px; }
+
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px solid #222;
+    }
+    .header-title { font-size: 20px; font-weight: 600; }
+    .header-title span { color: #888; font-size: 14px; font-weight: 300; margin-left: 10px; }
+    .back-btn {
+      background: #1a1a1a; border: 1px solid #333; color: #fff;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      font-family: 'Sarabun', sans-serif; font-size: 14px;
+      text-decoration: none;
+    }
+    .back-btn:hover { background: #222; }
+
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+      gap: 16px;
+    }
+
+    .camera-card {
+      background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .camera-card.over-limit {
+      border-color: #c0392b;
+      box-shadow: 0 0 24px rgba(192,57,43,0.35);
+    }
+
+    .camera-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: #161616;
+    }
+    .camera-name { font-size: 15px; font-weight: 600; }
+    .camera-badges { display: flex; gap: 8px; align-items: center; }
+
+    .badge-live { background: #1a3a1a; color: #4caf50; font-size: 11px; padding: 3px 8px; border-radius: 20px; border: 1px solid #2d5a2d; }
+    .badge-count { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+    .badge-ok   { background: #1a3a1a; color: #4caf50; border: 1px solid #2d5a2d; }
+    .badge-warn { background: #3a2e1a; color: #f39c12; border: 1px solid #5a4a2d; }
+    .badge-over { background: #3a1a1a; color: #e74c3c; border: 1px solid #5a2d2d; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    .camera-feed { position: relative; width: 100%; background: #000; }
+    .camera-feed img { width: 100%; display: block; min-height: 240px; object-fit: cover; }
+    .camera-offline {
+      width: 100%; height: 280px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #444; gap: 10px; font-size: 14px;
+    }
+
+    .limit-bar-wrap { padding: 10px 16px; background: #0d0d0d; }
+    .limit-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 6px; }
+    .limit-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
+    .limit-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s, background 0.5s; }
+
+    .camera-footer {
+      padding: 10px 16px; display: flex; justify-content: space-between;
+      font-size: 12px; color: #555; background: #0d0d0d;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    🎥 กล้อง Live
+    <span>SmartFlow AI · อุทยานประวัติศาสตร์พิมาย</span>
+  </div>
+  <a href="index.html" class="back-btn">← กลับ Dashboard</a>
+</div>
+
+<div class="camera-grid" id="cameraGrid"></div>
+
+<script>
+const LIMIT   = 30;
+const API_URL = window.SMARTFLOW_API_URL || window.location.origin;
+
+// รายการกล้อง — id ต้องตรงกับ CAMERAS ใน server.py
+const CAMERAS = [
+  { id: 'main-prang',   name: 'ปรางค์ประธาน' },
+  //{ id: 'south-gopura', name: 'โคปุระทิศใต้' },
+  //{ id: 'gallery',      name: 'ระเบียงคด' }
+];
+
+function buildCards() {
+  const grid = document.getElementById('cameraGrid');
+  grid.innerHTML = CAMERAS.map(cam => `
+    <div class="camera-card" id="card-${cam.id}">
+      <div class="camera-header">
+        <div class="camera-name">📷 ${cam.name}</div>
+        <div class="camera-badges">
+          <div class="badge-live">● LIVE</div>
+          <div class="badge-count badge-ok" id="badge-${cam.id}">— คน</div>
+        </div>
+      </div>
+      <div class="camera-feed">
+        <img
+          id="stream-${cam.id}"
+          src="${API_URL}/stream/${cam.id}"
+          alt="${cam.name}"
+          onerror="this.style.display='none';document.getElementById('offline-${cam.id}').style.display='flex';"
+        />
+        <div class="camera-offline" id="offline-${cam.id}" style="display:none;">
+          <div style="font-size:40px">📷</div>
+          <div>กล้องออฟไลน์ หรือ server.py ยังไม่ได้รัน</div>
+        </div>
+      </div>
+      <div class="limit-bar-wrap">
+        <div class="limit-bar-label">
+          <span>ความหนาแน่น</span>
+          <span id="bar-label-${cam.id}">รอข้อมูล...</span>
+        </div>
+        <div class="limit-bar-bg">
+          <div class="limit-bar-fill" id="bar-${cam.id}" style="width:0%;background:#4caf50;"></div>
+        </div>
+      </div>
+      <div class="camera-footer">
+        <span id="status-${cam.id}">รอข้อมูล...</span>
+        <span id="time-${cam.id}">—</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCards(data) {
+  for (const [zoneId, info] of Object.entries(data)) {
+    const count      = info.count;
+    const pct        = Math.min((count / LIMIT) * 100, 100);
+    const color      = count >= LIMIT ? '#e74c3c' : count >= LIMIT*0.7 ? '#f39c12' : '#4caf50';
+    const badgeCls   = count >= LIMIT ? 'badge-over' : count >= LIMIT*0.7 ? 'badge-warn' : 'badge-ok';
+    const statusText = count >= LIMIT ? '🔴 เกินขีดจำกัด!' : count >= LIMIT*0.7 ? '🟡 เฝ้าระวัง' : '🟢 ปกติ';
+
+    const badge    = document.getElementById(`badge-${zoneId}`);
+    const bar      = document.getElementById(`bar-${zoneId}`);
+    const barLabel = document.getElementById(`bar-label-${zoneId}`);
+    const status   = document.getElementById(`status-${zoneId}`);
+    const timeEl   = document.getElementById(`time-${zoneId}`);
+    const card     = document.getElementById(`card-${zoneId}`);
+
+    if (badge)    { badge.textContent = `${count} คน`; badge.className = `badge-count ${badgeCls}`; }
+    if (bar)      { bar.style.width = `${pct}%`; bar.style.background = color; }
+    if (barLabel) barLabel.textContent = `${count} / ${LIMIT} คน`;
+    if (status)   status.textContent   = statusText;
+    if (timeEl)   timeEl.textContent   = info.timestamp || '—';
+    if (card)     card.classList.toggle('over-limit', count >= LIMIT);
+  }
+}
+
+async function pollCounts() {
+  try {
+    const res  = await fetch(`${API_URL}/api/counts`);
+    const data = await res.json();
+    updateCards(data.cameras || {});
+  } catch(e) { /* server ยังไม่พร้อม */ }
+}
+
+buildCards();
+pollCounts();
+setInterval(pollCounts, 2000);
+</script>
+</body>
+</html>

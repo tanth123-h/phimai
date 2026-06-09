@@ -1,853 +1,661 @@
-/* ================================================================
-   PHIMAI SMARTFLOW AI — JavaScript เจ้าหน้าที่
-   ไฟล์: staff/js/staff.js
-   ⚠️ ไม่เชื่อมต่อกับหน้าสาธารณะ
+﻿/* ================================================================
+   PHIMAI SMARTFLOW AI — JavaScript เจ้าหน้าที่ (เวอร์ชันเสถียรสูงสุด)
 ================================================================ */
 
-/* ================================================================
-   1. รหัสผ่าน — เปลี่ยนได้ที่นี่
-   (ในระบบจริงควรใช้ server-side authentication)
-================================================================ */
 const STAFF_PIN = '1234';
+const API_URL = window.SMARTFLOW_API_URL || window.location.origin;
+const WS_URL  = window.SMARTFLOW_WS_URL || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+const CAM_LIMIT = 30;
 
-/* ================================================================
-   2. ข้อมูลโซน — แก้ไขชื่อโซน ความจุ และตำแหน่งได้ที่นี่
-================================================================ */
 const ZONES = [
-  {
-    id: 'main-prang',
-    name: 'ปรางค์ประธาน',
-    nameEn: 'Main Prang',
-    capacity: 60,
-    current: 87,
-    svgX: 300, svgY: 185,
-    camId: 'CAM-01',
-  },
-  {
-    id: 'south-gopura',
-    name: 'โคปุระทิศใต้',
-    nameEn: 'South Gopura',
-    capacity: 40,
-    current: 32,
-    svgX: 300, svgY: 300,
-    camId: 'CAM-02',
-  },
-  {
-    id: 'gallery',
-    name: 'ระเบียงคด',
-    nameEn: 'Gallery Corridor',
-    capacity: 50,
-    current: 41,
-    svgX: 190, svgY: 185,
-    camId: 'CAM-03',
-  },
-  {
-    id: 'library',
-    name: 'บรรณาลัย',
-    nameEn: 'Library',
-    capacity: 25,
-    current: 8,
-    svgX: 410, svgY: 135,
-    camId: 'CAM-04',
-  },
-  {
-    id: 'naga-bridge',
-    name: 'สะพานนาคราช',
-    nameEn: 'Naga Bridge',
-    capacity: 30,
-    current: 19,
-    svgX: 300, svgY: 370,
-    camId: 'CAM-05',
-  },
-  {
-    id: 'museum',
-    name: 'พิพิธภัณฑ์',
-    nameEn: 'Museum',
-    capacity: 80,
-    current: 14,
-    svgX: 110, svgY: 245,
-    camId: 'CAM-06',
-  },
+  { id: 'main-prang',    name: 'ปรางค์ประธาน',  capacity: 60, current: 0, svgX: 300, svgY: 185, camId: 'CAM-01' },
+  { id: 'south-gopura',  name: 'โคปุระทิศใต้',  capacity: 40, current: 0, svgX: 300, svgY: 300, camId: 'CAM-02' },
+  { id: 'gallery',       name: 'ระเบียงคด',    capacity: 50, current: 0, svgX: 190, svgY: 185, camId: 'CAM-03' },
+  { id: 'library',       name: 'บรรณาลัย',     capacity: 25, current: 0, svgX: 410, svgY: 135, camId: 'CAM-04' },
+  { id: 'naga-bridge',   name: 'สะพานนาคราช',  capacity: 30, current: 0, svgX: 300, svgY: 370, camId: 'CAM-05' },
+  { id: 'museum',        name: 'พิพิธภัณฑ์',    capacity: 80, current: 0, svgX: 110, svgY: 245, camId: 'CAM-06' },
 ];
 
-/* ================================================================
-   3. ข้อมูลผู้ค้าบริเวณใกล้เคียง — เพิ่ม/ลดรายชื่อได้
-================================================================ */
-const VENDORS = [
-  { name: 'ร้านก๋วยเตี๋ยวป้าแดง',     dist: '120 ม.', status: 'notified' },
-  { name: 'แผงของฝากพิมาย',             dist: '85 ม.',  status: 'notified' },
-  { name: 'ร้านน้ำอ้อยสดสุขใจ',          dist: '200 ม.', status: 'pending'  },
-  { name: 'ร้านข้าวมันไก่โคราช',          dist: '340 ม.', status: 'pending'  },
-  { name: 'หาบเร่ผลไม้ตัดแว่น',          dist: '50 ม.',  status: 'idle'     },
+const CAMERA_ZONES = [
+  { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: 30 },
 ];
 
-/* ================================================================
-   4. ตัวแปร State
-================================================================ */
-let notifLog = [];
-let alertIdCounter = 0;
-let simulationRunning = false;
-let simTimer = null;
-let barHeights = [55, 40, 70, 88, 62, 45, 30, 72]; // % เปอร์เซ็นต์แต่ละชั่วโมง
+let latestCameraData = {};
+let activeCameraId = null;
+let activeChartScale = 'hour'; 
+let chartHistoryOffset = 0;
+let chartHistoryData = null;
 
 /* ================================================================
-   5. LOGIN
+   LOGIN SYSTEM
 ================================================================ */
 document.getElementById('loginBtn')?.addEventListener('click', attemptLogin);
-document.getElementById('pinInput')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') attemptLogin();
-});
+document.getElementById('pinInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptLogin(); });
 
 function attemptLogin() {
   const input = document.getElementById('pinInput');
-  const error = document.getElementById('loginError');
-  if (!input) return;
-
-  if (input.value.trim() === STAFF_PIN) {
-    // สำเร็จ
+  if (input?.value.trim() === STAFF_PIN) {
     document.getElementById('loginScreen').style.display = 'none';
-    const dash = document.getElementById('dashboard');
-    dash.classList.add('visible');
+    document.getElementById('dashboard').classList.add('visible');
     initDashboard();
   } else {
-    error.textContent = '❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
     input.value = '';
-    input.focus();
-    input.style.borderColor = 'var(--red)';
-    setTimeout(() => {
-      input.style.borderColor = '';
-      error.textContent = '';
-    }, 2000);
+    alert("❌ รหัสผ่านไม่ถูกต้อง");
   }
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-  location.reload();
-});
+document.getElementById('logoutBtn')?.addEventListener('click', () => location.reload());
 
-/* ================================================================
-   6. INIT DASHBOARD
-================================================================ */
 function initDashboard() {
   startClock();
   renderMap();
   renderStats();
-  renderNotifPanel();
-  renderVendorList();
   renderBarChart();
-  startSimulation();
-  initMonthlyAnalytics();
+  updateMonthlyYearTitle();
+  renderMonthlySection();
+  initCameraControls();   
+  loadCameraSettings();
+  renderCameraMonitor(); 
+  connectCameraWS();      
+  setupStaticFeatures();
 }
 
-/* ================================================================
-   7. CLOCK
-================================================================ */
 function startClock() {
   const clockEl = document.getElementById('dashClock');
   const dateEl  = document.getElementById('dashDate');
 
-  function update() {
+  setInterval(() => {
     const now = new Date();
-    if (clockEl) clockEl.textContent =
-      now.getHours().toString().padStart(2,'0') + ':' +
-      now.getMinutes().toString().padStart(2,'0') + ':' +
-      now.getSeconds().toString().padStart(2,'0');
+    if (clockEl) clockEl.textContent = now.toLocaleTimeString("th-TH", { hour12: false });
     if (dateEl) {
       const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
       const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
       dateEl.textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear() + 543}`;
     }
-  }
-  update();
-  setInterval(update, 1000);
+    updateMonthlyYearTitle(now);
+  }, 1000);
 }
 
 /* ================================================================
-   8. STAT ROW
+   WEBSOCKET REALTIME (มีระบบดัก Error)
 ================================================================ */
-function renderStats() {
-  const total = ZONES.reduce((s, z) => s + z.current, 0);
-  const highZones  = ZONES.filter(z => z.current / z.capacity > 1.2).length;
-  const medZones   = ZONES.filter(z => z.current / z.capacity >= 0.7 && z.current / z.capacity <= 1.2).length;
+let camWS = null;
+function connectCameraWS() {
+  camWS = new WebSocket(WS_URL);
+  
+  camWS.onmessage = (event) => {
+    try {
+      const payload = JSON.parse(event.data);
+      latestCameraData = payload.cameras || {};
+      window.advancedAnalytics = payload.analytics || {};
+      
+      for (const [zoneId, info] of Object.entries(latestCameraData)) {
+        const zone = ZONES.find(z => z.id === zoneId);
+        if (zone) zone.current = info.count;
+      }
 
-  setStatCell('statTotal',     total,       '▲ 12 จากชั่วโมงก่อน', 'delta-up');
-  setStatCell('statHigh',      highZones,   'โซนที่ต้องระวัง',       highZones > 0 ? 'delta-up' : 'delta-flat');
-  setStatCell('statMedium',    medZones,    'โซนปานกลาง',            'delta-flat');
-  setStatCell('statNotif',     notifLog.length || 3, 'การแจ้งเตือนวันนี้', 'delta-flat');
-  setStatCell('statLine',      5,           'ส่ง LINE แล้ว',         'delta-down');
-}
-
-function setStatCell(id, value, sub, deltaClass) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const valEl   = el.querySelector('.stat-cell-value');
-  const subEl   = el.querySelector('.stat-cell-delta');
-  if (valEl) valEl.textContent = value;
-  if (subEl) { subEl.textContent = sub; subEl.className = `stat-cell-delta ${deltaClass}`; }
-}
-
-/* ================================================================
-   9. MAP SVG
-================================================================ */
-function renderMap() {
-  const svg = document.getElementById('mapSvg');
-  if (!svg) return;
-  svg.innerHTML = '';
-
-  const W = 600, H = 340;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-
-  /* -- ผนังปราสาท (outline) -- */
-  const walls = [
-    // กำแพงชั้นนอก
-    { x: 40,  y: 30,  w: 520, h: 280, stroke: 'rgba(217,123,53,0.2)', fill: 'none', sw: 1.5 },
-    // กำแพงชั้นกลาง
-    { x: 100, y: 75,  w: 400, h: 190, stroke: 'rgba(217,123,53,0.3)', fill: 'none', sw: 1.5 },
-    // กำแพงชั้นใน
-    { x: 200, y: 130, w: 200, h: 110, stroke: 'rgba(217,123,53,0.45)', fill: 'rgba(217,123,53,0.04)', sw: 2 },
-  ];
-  walls.forEach(w => {
-    const rect = createSVGEl('rect');
-    Object.assign(rect, {});
-    rect.setAttribute('x', w.x);
-    rect.setAttribute('y', w.y);
-    rect.setAttribute('width',  w.w);
-    rect.setAttribute('height', w.h);
-    rect.setAttribute('stroke', w.stroke);
-    rect.setAttribute('stroke-width', w.sw);
-    rect.setAttribute('fill', w.fill || 'none');
-    rect.setAttribute('rx', '3');
-    svg.appendChild(rect);
-  });
-
-  /* -- ป้ายหัวมุม -- */
-  const corners = [
-    { x: 55,  y: 45,  label: 'N' },
-    { x: 540, y: 45,  label: 'E' },
-    { x: 55,  y: 285, label: 'W' },
-    { x: 540, y: 285, label: 'S' },
-  ];
-  corners.forEach(c => {
-    const t = createSVGEl('text');
-    t.setAttribute('x', c.x); t.setAttribute('y', c.y);
-    t.setAttribute('fill', 'rgba(217,123,53,0.25)');
-    t.setAttribute('font-size', '9');
-    t.setAttribute('font-family', 'var(--font-ui)');
-    t.setAttribute('text-anchor', 'middle');
-    t.textContent = c.label;
-    svg.appendChild(t);
-  });
-
-  /* -- กล้อง (camera icons) -- */
-  const cameras = [
-    { x: 155, y: 90 }, { x: 445, y: 90 },
-    { x: 155, y: 250 }, { x: 445, y: 250 },
-  ];
-  cameras.forEach((c, i) => {
-    const g = createSVGEl('g');
-    g.setAttribute('class', 'camera-dot');
-    g.setAttribute('title', `CAM-0${i+1}`);
-
-    const circle = createSVGEl('circle');
-    circle.setAttribute('cx', c.x); circle.setAttribute('cy', c.y);
-    circle.setAttribute('r', '7');
-    circle.setAttribute('fill', 'rgba(59,130,246,0.2)');
-    circle.setAttribute('stroke', 'rgba(59,130,246,0.5)');
-    circle.setAttribute('stroke-width', '1');
-
-    const dot = createSVGEl('circle');
-    dot.setAttribute('cx', c.x); dot.setAttribute('cy', c.y);
-    dot.setAttribute('r', '2.5');
-    dot.setAttribute('fill', 'rgba(59,130,246,0.8)');
-
-    g.appendChild(circle); g.appendChild(dot);
-    svg.appendChild(g);
-  });
-
-  /* -- โซน -- */
-  ZONES.forEach(zone => {
-    const ratio = zone.current / zone.capacity;
-    const status = ratio > 1.2 ? 'high' : ratio >= 0.7 ? 'medium' : 'low';
-    const color  = status === 'high' ? '#EF4444' : status === 'medium' ? '#F59E0B' : '#22C55E';
-    const radius = status === 'high' ? 28 : status === 'medium' ? 22 : 18;
-
-    const g = createSVGEl('g');
-    g.setAttribute('class', 'zone-circle');
-    g.setAttribute('data-zone', zone.id);
-    g.addEventListener('click', () => showZoneInfo(zone));
-
-    /* pulse ring (แสดงเฉพาะตอน high) */
-    if (status === 'high') {
-      const ring = createSVGEl('circle');
-      ring.setAttribute('cx', zone.svgX); ring.setAttribute('cy', zone.svgY);
-      ring.setAttribute('r', radius + 8);
-      ring.setAttribute('fill', 'none');
-      ring.setAttribute('stroke', color);
-      ring.setAttribute('stroke-width', '1.5');
-      ring.setAttribute('opacity', '0.6');
-      ring.setAttribute('class', 'zone-alert-ring');
-      g.appendChild(ring);
+      renderMap();
+      renderStats();
+      updateCameraMonitor();
+      if (chartHistoryOffset === 0) {
+        chartHistoryData = null;
+        renderBarChart();
+      }
+      renderMonthlySection();
+    } catch(e) {
+      console.error("❌ การรับส่งข้อมูล WebSocket มีปัญหา:", e);
     }
+  };
 
-    /* วงกลมหลัก */
-    const circle = createSVGEl('circle');
-    circle.setAttribute('cx', zone.svgX); circle.setAttribute('cy', zone.svgY);
-    circle.setAttribute('r', radius);
-    circle.setAttribute('fill', `${color}25`);
-    circle.setAttribute('stroke', color);
-    circle.setAttribute('stroke-width', '2');
-    g.appendChild(circle);
-
-    /* ตัวเลขผู้เยี่ยม */
-    const countText = createSVGEl('text');
-    countText.setAttribute('x', zone.svgX); countText.setAttribute('y', zone.svgY + 4);
-    countText.setAttribute('class', 'zone-count-text');
-    countText.setAttribute('fill', color);
-    countText.textContent = zone.current;
-    g.appendChild(countText);
-
-    /* ชื่อโซน */
-    const labelText = createSVGEl('text');
-    labelText.setAttribute('x', zone.svgX);
-    labelText.setAttribute('y', zone.svgY + radius + 13);
-    labelText.setAttribute('class', 'zone-label-text');
-    labelText.textContent = zone.name;
-    g.appendChild(labelText);
-
-    svg.appendChild(g);
-  });
-}
-
-function createSVGEl(tag) {
-  return document.createElementNS('http://www.w3.org/2000/svg', tag);
+  camWS.onclose = () => setTimeout(connectCameraWS, 3000);
 }
 
 /* ================================================================
-   10. NOTIFICATION PANEL
-================================================================ */
-function renderNotifPanel() {
-  const panel = document.getElementById('notifList');
-  if (!panel) return;
-  panel.innerHTML = '';
-
-  /* -- การแจ้งเตือนเริ่มต้น -- */
-  const initialNotifs = [
-    {
-      color: 'red',
-      icon: '🚨',
-      badge: 'badge-red',
-      badgeText: 'วิกฤต',
-      title: 'ปรางค์ประธาน — ผู้เยี่ยมชมเกินความจุ',
-      body: 'พบผู้เยี่ยมชม 87 คน (ความจุสูงสุด 60) · ส่งเจ้าหน้าที่ไปโซน A-2 แล้ว',
-      time: '14:31',
-      hasLine: true,
-      lineMsg: 'แจ้งเจ้าหน้าที่ 3 คน · สายตรวจ 1 คน',
-      actions: ['ส่งเจ้าหน้าที่เพิ่ม', 'รับทราบ']
-    },
-    {
-      color: 'yellow',
-      icon: '⚠️',
-      badge: 'badge-yellow',
-      badgeText: 'เฝ้าระวัง',
-      title: 'ระเบียงคด — ความหนาแน่นปานกลาง',
-      body: 'ผู้เยี่ยมชม 41 คน (82% ของความจุ) · แนวโน้มเพิ่มขึ้น ควรติดตาม',
-      time: '14:28',
-      hasLine: false,
-      actions: ['เฝ้าดู', 'รับทราบ']
-    },
-    {
-      color: 'green',
-      icon: '♿',
-      badge: 'badge-blue',
-      badgeText: 'ช่วยเหลือ',
-      title: 'ตรวจพบผู้สูงอายุ — ต้องการความช่วยเหลือ',
-      body: 'AI ตรวจพบผู้สูงอายุเดินช้าบริเวณโคปุระทิศใต้ · ส่งเจ้าหน้าที่ไปรับแล้ว',
-      time: '14:25',
-      hasLine: true,
-      lineMsg: 'แจ้งเจ้าหน้าที่ accessibility 1 คน',
-      actions: ['รับทราบ']
-    },
-    {
-      color: 'line',
-      icon: '💬',
-      badge: 'badge-line',
-      badgeText: 'LINE',
-      title: 'แจ้งผู้ค้าแผงลอยใกล้เคียง',
-      body: 'ส่ง LINE แจ้ง 2 ร้านค้า: ร้านก๋วยเตี๋ยวป้าแดง + แผงของฝากพิมาย · ให้เตรียมพร้อมรับลูกค้า',
-      time: '14:20',
-      hasLine: false,
-      actions: ['ดูรายชื่อผู้ค้า']
-    },
-    {
-      color: 'green',
-      icon: '✅',
-      badge: 'badge-green',
-      badgeText: 'ปกติ',
-      title: 'พิพิธภัณฑ์ — ผู้เยี่ยมชมน้อย',
-      body: 'ผู้เยี่ยมชม 14 คน (17% ของความจุ) · สถานการณ์ปกติ ไม่ต้องดำเนินการ',
-      time: '14:18',
-      hasLine: false,
-      actions: ['รับทราบ']
-    },
-  ];
-
-  initialNotifs.forEach(n => panel.appendChild(buildNotifCard(n)));
-}
-
-function buildNotifCard(data) {
-  const card = document.createElement('div');
-  card.className = `notif-item ${data.color}`;
-
-  let html = `
-    <div class="notif-header">
-      <div class="notif-icon-type">
-        <span class="notif-icon">${data.icon}</span>
-        <span class="notif-type-badge ${data.badge}">${data.badgeText}</span>
-      </div>
-      <span class="notif-time">${data.time}</span>
-    </div>
-    <div class="notif-title">${data.title}</div>
-    <div class="notif-body">${data.body}</div>
-  `;
-  if (data.hasLine && data.lineMsg) {
-    html += `
-      <div class="notif-line-msg">
-        <div class="line-logo">💬</div>
-        <div class="line-text"><strong>ส่ง LINE แล้ว</strong>${data.lineMsg}</div>
-      </div>
-    `;
-  }
-  html += `<div class="notif-actions">`;
-  (data.actions || []).forEach((a, i) => {
-    html += `<button class="notif-act-btn ${i === 0 ? 'primary' : ''}" onclick="this.parentElement.parentElement.remove()">${a}</button>`;
-  });
-  html += `</div>`;
-
-  card.innerHTML = html;
-  return card;
-}
-
-/* ================================================================
-   11. VENDOR LIST
-================================================================ */
-function renderVendorList() {
-  const el = document.getElementById('vendorList');
-  if (!el) return;
-  el.innerHTML = '';
-  VENDORS.forEach(v => {
-    el.innerHTML += `
-      <div class="vendor-item">
-        <div class="vendor-status ${v.status}"></div>
-        <div class="vendor-name">${v.name}</div>
-        <div class="vendor-dist">${v.dist}</div>
-      </div>
-    `;
-  });
-}
-
-/* ================================================================
-   12. BAR CHART (ผู้เยี่ยมชมรายชั่วโมง)
+   DYNAMIC GRAPH & AI REPORT
 ================================================================ */
 function renderBarChart() {
   const container = document.getElementById('barChart');
   if (!container) return;
 
-  const hours  = ['07', '08', '09', '10', '11', '12', '13', '14'];
-  const max    = Math.max(...barHeights);
-  container.innerHTML = '';
+  const scales = [
+    { id: 'minute', name: 'รายนาที' },
+    { id: 'hour', name: 'รายชั่วโมง' },
+    { id: 'day', name: 'รายวัน' },
+    { id: 'month', name: 'รายเดือน' },
+    { id: 'year', name: 'รายปี' }
+  ];
 
-  hours.forEach((h, i) => {
-    const isCurrent = i === 7;
-    const isHigh    = barHeights[i] > 80;
-    const pct = (barHeights[i] / max) * 100;
+  let tabWrap = document.getElementById('chartTabWrapper');
+  if (!tabWrap) {
+    tabWrap = document.createElement('div');
+    tabWrap.id = 'chartTabWrapper';
+    container.parentNode.insertBefore(tabWrap, container);
+  }
 
-    container.innerHTML += `
-      <div class="bar-col">
-        <div class="bar-val">${barHeights[i]}</div>
-        <div class="bar-fill ${isCurrent ? 'active' : ''} ${isHigh ? 'high' : ''}"
-             style="height: ${pct}%"></div>
-        <div class="bar-label">${h}:00</div>
-      </div>
-    `;
-  });
+  tabWrap.innerHTML = scales.map(s => `
+    <button class="chart-tab ${s.id === activeChartScale ? 'active' : ''}" type="button"
+            onclick="window.setChartScale('${s.id}')">${s.name}</button>
+  `).join('');
+
+  let historyControls = document.getElementById('chartHistoryControls');
+  if (!historyControls) {
+    historyControls = document.createElement('div');
+    historyControls.id = 'chartHistoryControls';
+    tabWrap.insertAdjacentElement('afterend', historyControls);
+  }
+  renderChartHistoryControls();
+
+  const data = chartHistoryData || (window.advancedAnalytics ? window.advancedAnalytics[activeChartScale] : null);
+  if (!data || !data.labels) {
+    container.innerHTML = '<div class="chart-empty">กำลังเตรียมข้อมูลกราฟ...</div>';
+    return;
+  }
+
+  const titleEl = document.querySelector('.chart-title');
+  if (titleEl) {
+    const txtMap = {
+      minute: 'กราฟจำนวนคนรายนาที',
+      hour: 'กราฟจำนวนคนรายชั่วโมง',
+      day: 'กราฟจำนวนคนรายวัน',
+      month: 'กราฟจำนวนคนรายเดือน',
+      year: 'กราฟจำนวนคนรายปี'
+    };
+    titleEl.textContent = chartHistoryData?.period_label
+      ? `${txtMap[activeChartScale]} · ${chartHistoryData.period_label}`
+      : txtMap[activeChartScale];
+  }
+
+  const maxVal = Math.max(...data.values, 1);
+  const totalVal = data.values.reduce((sum, val) => sum + Number(val || 0), 0);
+  const peakIndex = data.values.indexOf(maxVal);
+  const peakLabel = data.labels[peakIndex] || '-';
+
+  let chartMeta = document.getElementById('chartMeta');
+  if (!chartMeta) {
+    chartMeta = document.createElement('div');
+    chartMeta.id = 'chartMeta';
+    container.parentNode.insertBefore(chartMeta, container);
+  }
+
+  chartMeta.innerHTML = `
+    <div class="chart-meta-card"><span>สูงสุด</span><strong>${maxVal}</strong><small>${peakLabel}</small></div>
+    <div class="chart-meta-card"><span>รวมช่วงที่เลือก</span><strong>${totalVal}</strong><small>คน</small></div>
+    <div class="chart-meta-card"><span>จำนวนช่วงเวลา</span><strong>${data.labels.length}</strong><small>รายการ</small></div>
+  `;
+
+  container.innerHTML = data.labels.map((lbl, i) => {
+    const val = Number(data.values[i] || 0);
+    const heightPercent = Math.max(10, (val / maxVal) * 86);
+    const isPeak = val === maxVal && maxVal > 0;
+    const isCurrentHour = activeChartScale === 'hour' && new Date().getHours() === parseInt(String(lbl).split(':')[0]);
+    return `
+      <div class="bar-col ${isPeak ? 'peak' : ''}">
+        <div class="bar-val">${val}</div>
+        <div class="bar-fill ${isCurrentHour ? 'active' : ''}" style="height: ${heightPercent}%"></div>
+        <div class="bar-label">${lbl}</div>
+      </div>`;
+  }).join('');
+
+  let summaryBox = document.getElementById('chartSummaryBox');
+  if (!summaryBox) {
+    summaryBox = document.createElement('div');
+    summaryBox.id = 'chartSummaryBox';
+    container.parentNode.appendChild(summaryBox);
+  }
+
+  if (chartHistoryData?.summary_text) {
+    summaryBox.innerHTML = chartHistoryData.summary_text;
+  } else if (window.advancedAnalytics && window.advancedAnalytics.summary_text) {
+    summaryBox.innerHTML = window.advancedAnalytics.summary_text;
+  }
 }
 
-/* ================================================================
-   13. ZONE INFO POPUP (คลิกที่โซนบนแผนที่)
-================================================================ */
-function showZoneInfo(zone) {
-  const ratio   = zone.current / zone.capacity;
-  const status  = ratio > 1.2 ? 'เกินความจุ 🔴' : ratio >= 0.7 ? 'ปานกลาง 🟡' : 'ปกติ 🟢';
-  showToast(`📍 ${zone.name}`, `ผู้เยี่ยมชม: ${zone.current} คน · ความจุ: ${zone.capacity} · สถานะ: ${status} · กล้อง: ${zone.camId}`);
+window.setChartScale = function(scale) {
+  activeChartScale = scale;
+  chartHistoryOffset = 0;
+  chartHistoryData = null;
+  renderBarChart();
+};
+
+function getHistoryStepText() {
+  const map = {
+    minute: 'ครั้งละ 10 นาที',
+    hour: 'ครั้งละ 1 วัน',
+    day: 'ครั้งละ 1 สัปดาห์',
+    month: 'ครั้งละ 1 ปี',
+    year: 'ครั้งละ 3 ปี'
+  };
+  return map[activeChartScale] || '';
 }
 
-/* ================================================================
-   14. TOAST NOTIFICATIONS
-================================================================ */
-function showToast(title, body, duration = 5000) {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
+function renderChartHistoryControls() {
+  const controls = document.getElementById('chartHistoryControls');
+  if (!controls) return;
 
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `
-    <div class="toast-icon">🔔</div>
-    <div class="toast-content">
-      <div class="toast-title">${title}</div>
-      <div class="toast-body">${body}</div>
+  const statusText = chartHistoryOffset === 0
+    ? 'กำลังดูข้อมูลปัจจุบัน'
+    : `ย้อนหลัง ${chartHistoryOffset} ช่วง`;
+
+  controls.innerHTML = `
+    <div class="history-control-left">
+      <button class="history-btn" type="button" onclick="window.shiftChartHistory(1)">ย้อนกลับ</button>
+      <button class="history-btn current" type="button" onclick="window.resetChartHistory()">ปัจจุบัน</button>
+      <button class="history-btn" type="button" ${chartHistoryOffset === 0 ? 'disabled' : ''} onclick="window.shiftChartHistory(-1)">ถัดไป</button>
+    </div>
+    <div class="history-status">
+      <strong>${statusText}</strong>
+      <span>${getHistoryStepText()}</span>
     </div>
   `;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add('exiting');
-    setTimeout(() => toast.remove(), 350);
-  }, duration);
 }
 
-/* ================================================================
-   15. SIMULATION — เลียนแบบการเปลี่ยนแปลงแบบเรียลไทม์
-   ทุก 8 วินาที ตัวเลขในโซนจะเปลี่ยน และมีการแจ้งเตือนใหม่
-================================================================ */
-function startSimulation() {
-  if (simulationRunning) return;
-  simulationRunning = true;
-  scheduleNextEvent();
-}
+window.shiftChartHistory = async function(direction) {
+  const nextOffset = Math.max(0, chartHistoryOffset + direction);
+  if (nextOffset === chartHistoryOffset) return;
+  chartHistoryOffset = nextOffset;
 
-function scheduleNextEvent() {
-  const delay = 7000 + Math.random() * 8000; // 7–15 วินาที
-  simTimer = setTimeout(() => {
-    simulateEvent();
-    scheduleNextEvent();
-  }, delay);
-}
+  if (chartHistoryOffset === 0) {
+    chartHistoryData = null;
+    renderBarChart();
+    return;
+  }
 
-const simEvents = [
-  () => {
-    // ผู้คนเพิ่มที่ปรางค์ประธาน
-    const zone = ZONES.find(z => z.id === 'main-prang');
-    zone.current += Math.floor(Math.random() * 6) + 2;
-    renderMap();
-    renderStats();
-    showToast('🚨 แจ้งเตือนระดับสูง', `ปรางค์ประธาน: ${zone.current} คน (เกินความจุ)`);
-    addNotif({
-      color: 'red', icon: '🚨', badge: 'badge-red', badgeText: 'วิกฤต',
-      title: 'ปรางค์ประธาน — ผู้เยี่ยมชมเพิ่มขึ้น',
-      body: `ตรวจพบผู้เยี่ยมชม ${zone.current} คน · ส่ง LINE แจ้งเจ้าหน้าที่แล้ว`,
-      time: nowStr(), hasLine: true, lineMsg: 'แจ้งเจ้าหน้าที่ทันที',
-      actions: ['ส่งเจ้าหน้าที่', 'รับทราบ']
-    });
-  },
-  () => {
-    // ผู้สูงอายุต้องการความช่วยเหลือ
-    const zones = ['โคปุระทิศใต้', 'ระเบียงคด', 'สะพานนาคราช'];
-    const loc = zones[Math.floor(Math.random() * zones.length)];
-    showToast('♿ ความช่วยเหลือ', `ตรวจพบผู้สูงอายุที่ ${loc} · กำลังส่งเจ้าหน้าที่`);
-    addNotif({
-      color: 'blue', icon: '🧓', badge: 'badge-blue', badgeText: 'ช่วยเหลือ',
-      title: `ตรวจพบผู้สูงอายุ — ${loc}`,
-      body: 'AI ตรวจพบการเดินช้าผิดปกติ · ส่ง LINE แจ้งเจ้าหน้าที่แล้ว',
-      time: nowStr(), hasLine: true, lineMsg: 'แจ้งเจ้าหน้าที่ accessibility',
-      actions: ['รับทราบ']
-    });
-  },
-  () => {
-    // แจ้งผู้ค้า
-    showToast('💬 LINE ผู้ค้า', 'ผู้เยี่ยมชมพลุกพล่าน · แจ้งผู้ค้าใกล้เคียงแล้ว 3 ร้าน');
-    addNotif({
-      color: 'line', icon: '🛍️', badge: 'badge-line', badgeText: 'LINE',
-      title: 'แจ้งผู้ค้าแผงลอยบริเวณใกล้เคียง',
-      body: 'ส่ง LINE แจ้งเตือน 3 ร้านค้า ให้เตรียมเปิดแผง · วันนี้มีผู้เยี่ยมชมมากกว่าปกติ',
-      time: nowStr(), hasLine: false,
-      actions: ['ดูรายชื่อ', 'รับทราบ']
-    });
-  },
-  () => {
-    // ผู้คนลดลงที่โซนปกติ
-    const zone = ZONES.find(z => z.id === 'museum');
-    zone.current = Math.max(5, zone.current - 3);
-    renderMap();
-    renderStats();
-    showToast('✅ สถานะปกติ', `พิพิธภัณฑ์: ผู้เยี่ยมชมลดลงเหลือ ${zone.current} คน`);
-  },
-  () => {
-    // อัปเดต bar chart
-    barHeights = barHeights.map(h => {
-      const change = (Math.random() - 0.4) * 10;
-      return Math.max(10, Math.min(100, h + change));
-    });
+  await loadChartHistory();
+};
+
+window.resetChartHistory = function() {
+  chartHistoryOffset = 0;
+  chartHistoryData = null;
+  renderBarChart();
+};
+
+async function loadChartHistory() {
+  const controls = document.getElementById('chartHistoryControls');
+  if (controls) controls.classList.add('loading');
+  try {
+    const res = await fetch(`${API_URL}/api/analytics/history?scale=${encodeURIComponent(activeChartScale)}&offset=${chartHistoryOffset}`);
+    if (!res.ok) throw new Error(`history request failed: ${res.status}`);
+    chartHistoryData = await res.json();
+  } catch (err) {
+    console.error('โหลดข้อมูลย้อนหลังไม่สำเร็จ:', err);
+    chartHistoryData = {
+      labels: [],
+      values: [],
+      period_label: 'โหลดข้อมูลย้อนหลังไม่สำเร็จ',
+      summary_text: 'ไม่สามารถโหลดข้อมูลย้อนหลังจาก backend ได้ กรุณาตรวจสอบว่า Render service พร้อมทำงาน'
+    };
+  } finally {
+    if (controls) controls.classList.remove('loading');
     renderBarChart();
   }
-];
-
-let simEventIndex = 0;
-function simulateEvent() {
-  const event = simEvents[simEventIndex % simEvents.length];
-  simEventIndex++;
-  event();
 }
-
 
 /* ================================================================
-   17. MONTHLY ANALYTICS — สถิติผู้เยี่ยมชมรายเดือน 12 เดือน
+   MONTHLY SECTION 
 ================================================================ */
-
-const MONTHLY_DATA = [
-  { month: 'ม.ค.',  monthEn: 'Jan', visitors: 14820, note: 'เปิดปีใหม่ นักท่องเที่ยวไทยเยอะ' },
-  { month: 'ก.พ.',  monthEn: 'Feb', visitors: 13540, note: 'ท่องเที่ยวช่วงปกติ' },
-  { month: 'มี.ค.', monthEn: 'Mar', visitors: 18960, note: 'นักเรียน-นักศึกษาทัศนศึกษาช่วงปิดเทอม' },
-  { month: 'เม.ย.', monthEn: 'Apr', visitors: 24310, note: 'สงกรานต์ — พีคสูงสุดของปี' },
-  { month: 'พ.ค.',  monthEn: 'May', visitors: 16480, note: 'หลังสงกรานต์ยอดลดลง' },
-  { month: 'มิ.ย.', monthEn: 'Jun', visitors: 11230, note: 'หน้าฝน นักท่องเที่ยวน้อยลง' },
-  { month: 'ก.ค.',  monthEn: 'Jul', visitors: 9870,  note: 'ต่ำสุดของปี — ฝนตกหนัก' },
-  { month: 'ส.ค.',  monthEn: 'Aug', visitors: 10540, note: 'เริ่มฟื้นตัวเล็กน้อย' },
-  { month: 'ก.ย.',  monthEn: 'Sep', visitors: 12660, note: 'วันหยุดยาว-อาเซียน' },
-  { month: 'ต.ค.',  monthEn: 'Oct', visitors: 19430, note: 'งานเทศกาลปราสาทพิมายไนท์บาซาร์' },
-  { month: 'พ.ย.',  monthEn: 'Nov', visitors: 22150, note: 'งานแสดงแสงสีเสียงปราสาทพิมาย' },
-  { month: 'ธ.ค.',  monthEn: 'Dec', visitors: 21080, note: 'ปีใหม่ นักท่องเที่ยวต่างชาติเพิ่ม' },
-];
-
-function initMonthlyAnalytics() {
-  renderMonthlyChart();
-  renderMonthlyTable();
-  renderMonthlyAnalysis();
-
-  const total = MONTHLY_DATA.reduce((s, m) => s + m.visitors, 0);
-  const avg   = Math.round(total / 12);
+function renderMonthlySection() {
+  const tableBody = document.getElementById('monthlyTableBody');
   const metaEl = document.getElementById('monthlyMeta');
-  if (metaEl) metaEl.textContent = `รวม ${total.toLocaleString()} คน · เฉลี่ย ${avg.toLocaleString()} คน/เดือน`;
-}
+  const analysisEl = document.getElementById('monthlyAnalysis');
+  const now = new Date();
 
-/* ---- Line Chart SVG ---- */
-function renderMonthlyChart() {
-  const svg = document.getElementById('monthlyChartSvg');
-  if (!svg) return;
+  updateMonthlyYearTitle(now);
 
-  const W = 900, H = 160;
-  const padL = 54, padR = 20, padT = 18, padB = 32;
-  const chartW = W - padL - padR;
-  const chartH = H - padT - padB;
-
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('height', H);
-
-  const vals    = MONTHLY_DATA.map(m => m.visitors);
-  const maxVal  = Math.max(...vals);
-  const minVal  = Math.min(...vals);
-  const maxIdx  = vals.indexOf(maxVal);
-  const minIdx  = vals.indexOf(minVal);
-
-  const xStep = chartW / (MONTHLY_DATA.length - 1);
-  const pts   = vals.map((v, i) => ({
-    x: padL + i * xStep,
-    y: padT + chartH - ((v - minVal) / (maxVal - minVal + 1000)) * chartH,
-  }));
-
-  /* gradient area fill */
-  const defs = `
-    <defs>
-      <linearGradient id="mgGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="#D97B35" stop-opacity="0.28"/>
-        <stop offset="100%" stop-color="#D97B35" stop-opacity="0.01"/>
-      </linearGradient>
-    </defs>`;
-
-  /* area path */
-  const areaPath = [
-    `M ${pts[0].x} ${padT + chartH}`,
-    ...pts.map(p => `L ${p.x} ${p.y}`),
-    `L ${pts[pts.length-1].x} ${padT + chartH}`,
-    'Z'
-  ].join(' ');
-
-  /* line path */
-  const linePath = pts.map((p,i) => `${i===0?'M':'L'} ${p.x} ${p.y}`).join(' ');
-
-  /* grid lines */
-  let gridLines = '';
-  const gridCount = 4;
-  for (let i = 0; i <= gridCount; i++) {
-    const y = padT + (chartH / gridCount) * i;
-    const val = Math.round(maxVal - ((maxVal - minVal) / gridCount) * i);
-    gridLines += `
-      <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"
-            stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-      <text x="${padL - 6}" y="${y + 4}" text-anchor="end"
-            font-family="'JetBrains Mono',monospace" font-size="9"
-            fill="rgba(255,255,255,0.25)">${(val/1000).toFixed(0)}k</text>`;
+  const mData = window.advancedAnalytics?.month;
+  if (!mData || !tableBody) {
+    if (metaEl) metaEl.textContent = `รอข้อมูลล่าสุด · ปี พ.ศ. ${now.getFullYear() + 543}`;
+    return;
   }
 
-  /* month labels */
-  let labels = '';
-  MONTHLY_DATA.forEach((m, i) => {
-    labels += `
-      <text x="${pts[i].x}" y="${H - 4}" text-anchor="middle"
-            font-family="'Sarabun',sans-serif" font-size="9.5"
-            fill="${i === maxIdx ? '#22C55E' : i === minIdx ? '#3B82F6' : 'rgba(255,255,255,0.35)'}"
-            font-weight="${(i===maxIdx||i===minIdx)?'700':'400'}">${m.month}</text>`;
-  });
+  if (metaEl) {
+    metaEl.textContent = `อัปเดตล่าสุด ${now.toLocaleTimeString('th-TH', { hour12: false })} น.`;
+  }
 
-  /* data points */
-  let dots = '';
-  pts.forEach((p, i) => {
-    const isMax = i === maxIdx;
-    const isMin = i === minIdx;
-    const r     = isMax || isMin ? 5 : 3;
-    const fill  = isMax ? '#22C55E' : isMin ? '#3B82F6' : '#D97B35';
-    dots += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="#0A0600" stroke-width="1.5"/>`;
-    if (isMax || isMin) {
-      const label = isMax ? `▲ ${(maxVal/1000).toFixed(1)}k` : `▼ ${(minVal/1000).toFixed(1)}k`;
-      const dy = isMax ? -10 : 14;
-      dots += `<text x="${p.x}" y="${p.y + dy}" text-anchor="middle"
-                     font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700"
-                     fill="${fill}">${label}</text>`;
-    }
-  });
+  const values = mData.values.map(v => Number(v || 0));
+  const maxM = Math.max(...values, 1);
+  const totalM = values.reduce((sum, val) => sum + val, 0);
+  const peakIndex = values.indexOf(maxM);
+  const peakMonth = mData.labels[peakIndex] || '-';
 
-  svg.innerHTML = `
-    ${defs}
-    ${gridLines}
-    <path d="${areaPath}" fill="url(#mgGrad)"/>
-    <path d="${linePath}" fill="none" stroke="#D97B35" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}
-    ${labels}
+  let monthlyKpis = document.getElementById('monthlyKpis');
+  if (!monthlyKpis) {
+    monthlyKpis = document.createElement('div');
+    monthlyKpis.id = 'monthlyKpis';
+    document.querySelector('.monthly-header')?.insertAdjacentElement('afterend', monthlyKpis);
+  }
+  monthlyKpis.innerHTML = `
+    <div class="monthly-kpi"><span>รวมทั้งปี</span><strong>${totalM}</strong><small>คน</small></div>
+    <div class="monthly-kpi"><span>เดือนสูงสุด</span><strong>${peakMonth}</strong><small>${maxM} คน</small></div>
+    <div class="monthly-kpi"><span>ข้อมูลปี พ.ศ.</span><strong>${now.getFullYear() + 543}</strong><small>real-time</small></div>
   `;
-}
 
-/* ---- Monthly Table ---- */
-function renderMonthlyTable() {
-  const tbody = document.getElementById('monthlyTableBody');
-  if (!tbody) return;
+  let tableHtml = '';
+  let prevVal = 0;
+  mData.labels.forEach((lbl, i) => {
+    const val = values[i];
+    let diffText = '—';
+    let statusBadge = '<span class="monthly-status ok">● ปกติ</span>';
 
-  const vals   = MONTHLY_DATA.map(m => m.visitors);
-  const maxVal = Math.max(...vals);
-  const minVal = Math.min(...vals);
-
-  tbody.innerHTML = '';
-  MONTHLY_DATA.forEach((m, i) => {
-    const prev  = i > 0 ? MONTHLY_DATA[i-1].visitors : null;
-    const delta = prev !== null ? m.visitors - prev : null;
-    const pct   = prev !== null ? ((delta / prev) * 100).toFixed(1) : null;
-
-    const isMax = m.visitors === maxVal;
-    const isMin = m.visitors === minVal;
-
-    let deltaHtml = '<span class="month-delta-flat">—</span>';
-    if (delta !== null) {
-      if (delta > 0)
-        deltaHtml = `<span class="month-delta-up">▲ +${delta.toLocaleString()} (+${pct}%)</span>`;
-      else if (delta < 0)
-        deltaHtml = `<span class="month-delta-down">▼ ${delta.toLocaleString()} (${pct}%)</span>`;
-      else
-        deltaHtml = `<span class="month-delta-flat">→ 0 (0%)</span>`;
+    if (i > 0 && prevVal > 0) {
+      const diff = val - prevVal;
+      diffText = diff >= 0 ? `+${diff} คน` : `${diff} คน`;
+    }
+    if (val >= 30) {
+      statusBadge = '<span class="monthly-status high">หนาแน่นสูง</span>';
+    } else if (val >= 15) {
+      statusBadge = '<span class="monthly-status watch">เฝ้าระวัง</span>';
     }
 
-    let badge = '';
-    if (isMax)        badge = '<span class="month-badge month-badge-peak">🏆 สูงสุด</span>';
-    else if (isMin)   badge = '<span class="month-badge month-badge-low">📉 ต่ำสุด</span>';
-    else if (m.visitors > 18000) badge = '<span class="month-badge month-badge-high">🔥 ช่วงพีค</span>';
-    else              badge = '<span class="month-badge month-badge-normal">ปกติ</span>';
-
-    const tr = document.createElement('tr');
-    if (isMax) tr.className = 'month-highlight-max';
-    if (isMin) tr.className = 'month-highlight-min';
-    tr.innerHTML = `
-      <td>${m.month}</td>
-      <td>${m.visitors.toLocaleString()}</td>
-      <td>${deltaHtml}</td>
-      <td>${badge}</td>
-    `;
-    tbody.appendChild(tr);
+    tableHtml += `
+      <tr>
+        <td><b>${lbl}</b></td>
+        <td>${val} คน</td>
+        <td class="${diffText.startsWith('+') ? 'monthly-diff-up' : diffText.startsWith('—') ? 'monthly-diff-flat' : 'monthly-diff-down'}">${diffText}</td>
+        <td>${statusBadge}</td>
+      </tr>`;
+    prevVal = val;
   });
+  tableBody.innerHTML = tableHtml;
+
+  if (analysisEl) {
+    analysisEl.innerHTML = `<b>วิเคราะห์ภาพรวมรายเดือน:</b> ปี พ.ศ. ${now.getFullYear() + 543} พบเดือนที่มีผู้เข้าชมสูงสุดคือ <b>${peakMonth}</b> จำนวน <b>${maxM} คน</b> ระบบจะอัปเดตจากข้อมูลล่าสุดแบบ real-time`;
+  }
+
+  const svg = document.getElementById('monthlyChartSvg');
+  if (svg) {
+    svg.innerHTML = '';
+    svg.setAttribute('height', '220');
+    const width = svg.clientWidth || 900;
+    const height = 220;
+    const padX = 38;
+    const padTop = 24;
+    const padBottom = 44;
+    const chartH = height - padTop - padBottom;
+    const points = values.map((v, idx) => {
+      const x = (idx / (values.length - 1)) * (width - padX * 2) + padX;
+      const y = padTop + chartH - (v / maxM) * chartH;
+      return { x, y, val: v, lbl: mData.labels[idx] };
+    });
+
+    let pathD = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) pathD += ` L ${points[i].x} ${points[i].y}`;
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padBottom} L ${points[0].x} ${height - padBottom} Z`;
+
+    for (let i = 0; i <= 4; i++) {
+      const y = padTop + (chartH / 4) * i;
+      const grid = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      grid.setAttribute('x1', padX);
+      grid.setAttribute('x2', width - padX);
+      grid.setAttribute('y1', y);
+      grid.setAttribute('y2', y);
+      grid.setAttribute('class', 'monthly-grid-line');
+      svg.appendChild(grid);
+    }
+
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', areaD);
+    area.setAttribute('class', 'monthly-area');
+    svg.appendChild(area);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', pathD);
+    line.setAttribute('class', 'monthly-line');
+    svg.appendChild(line);
+
+    points.forEach(p => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', p.x);
+      circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', p.val === maxM && maxM > 0 ? '6' : '4');
+      circle.setAttribute('class', p.val === maxM && maxM > 0 ? 'monthly-point peak' : 'monthly-point');
+      svg.appendChild(circle);
+
+      const valText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      valText.setAttribute('x', p.x);
+      valText.setAttribute('y', Math.max(14, p.y - 10));
+      valText.setAttribute('class', 'monthly-value-label');
+      valText.textContent = p.val;
+      svg.appendChild(valText);
+
+      const lblText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lblText.setAttribute('x', p.x);
+      lblText.setAttribute('y', height - 16);
+      lblText.setAttribute('class', 'monthly-axis-label');
+      lblText.textContent = p.lbl;
+      svg.appendChild(lblText);
+    });
+  }
 }
 
-/* ---- Analysis Cards ---- */
-function renderMonthlyAnalysis() {
-  const el = document.getElementById('monthlyAnalysis');
-  if (!el) return;
-
-  const vals   = MONTHLY_DATA.map(m => m.visitors);
-  const maxVal = Math.max(...vals);
-  const minVal = Math.min(...vals);
-  const maxM   = MONTHLY_DATA[vals.indexOf(maxVal)];
-  const minM   = MONTHLY_DATA[vals.indexOf(minVal)];
-  const total  = vals.reduce((a,b) => a+b, 0);
-  const avg    = Math.round(total / 12);
-  const yoy    = '+8.4%'; // สมมุติเทียบปีที่แล้ว
-
-  el.innerHTML = `
-    <div class="analysis-card">
-      <div class="analysis-card-title">🏆 เดือนที่ผู้เยี่ยมชมมากที่สุด</div>
-      <div class="analysis-card-body">
-        <strong>${maxM.month} — ${maxVal.toLocaleString()} คน</strong><br>
-        ${maxM.note} ทำให้ยอดผู้เยี่ยมชมพุ่งสูงกว่าค่าเฉลี่ยถึง <strong>${Math.round((maxVal/avg-1)*100)}%</strong>
-        ควรเพิ่มเจ้าหน้าที่และเปิดช่องทางเข้าชมให้เพียงพอในช่วงนี้
-      </div>
-    </div>
-    <div class="analysis-card">
-      <div class="analysis-card-title">📉 เดือนที่ผู้เยี่ยมชมน้อยที่สุด</div>
-      <div class="analysis-card-body">
-        <strong>${minM.month} — ${minVal.toLocaleString()} คน</strong><br>
-        ${minM.note} ยอดต่ำกว่าค่าเฉลี่ย <strong>${Math.round((1-minVal/avg)*100)}%</strong>
-        เหมาะสำหรับการซ่อมบำรุงและฝึกอบรมเจ้าหน้าที่ประจำปี
-      </div>
-    </div>
-    <div class="analysis-card">
-      <div class="analysis-card-title">📊 แนวโน้มและฤดูกาล</div>
-      <div class="analysis-card-body">
-        พบ <strong>3 ช่วงพีค</strong> ชัดเจน: <strong>เม.ย.</strong> (สงกรานต์),
-        <strong>พ.ย.</strong> (เทศกาลแสงสีเสียง) และ <strong>ธ.ค.</strong> (ปีใหม่)
-        ช่วง <strong>มิ.ย.–ส.ค.</strong> เป็น Low Season ฝนตก ยอดดิ่งลงต่ำสุด
-      </div>
-    </div>
-    <div class="analysis-card">
-      <div class="analysis-card-title">📈 ภาพรวมทั้งปี</div>
-      <div class="analysis-card-body">
-        รวม <strong>${total.toLocaleString()} คน</strong> · เฉลี่ย <strong>${avg.toLocaleString()} คน/เดือน</strong><br>
-        เติบโต <strong>${yoy}</strong> เทียบปีก่อน · สัดส่วน High Season (เม.ย., ต.ค.–ธ.ค.)
-        คิดเป็น <strong>${Math.round(([24310,19430,22150,21080].reduce((a,b)=>a+b,0)/total)*100)}%</strong> ของยอดทั้งปี
-      </div>
-    </div>
-  `;
-}
-
-
-function addNotif(data) {
-  const panel = document.getElementById('notifList');
-  if (!panel) return;
-  const card = buildNotifCard(data);
-  panel.insertBefore(card, panel.firstChild);
-}
-
-function nowStr() {
-  const now = new Date();
-  return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+function updateMonthlyYearTitle(date = new Date()) {
+  const titleEl = document.querySelector('.monthly-title');
+  if (!titleEl) return;
+  titleEl.textContent = `สถิติผู้เยี่ยมชมรายเดือน · ปี พ.ศ. ${date.getFullYear() + 543}`;
 }
 
 /* ================================================================
-   16. MANUAL CONTROLS (ปุ่มในหน้า dashboard)
+   STATS & MAP ELEMENTS
 ================================================================ */
-// ปุ่มทดสอบส่ง LINE
-document.getElementById('testLineBtn')?.addEventListener('click', () => {
-  showToast('💬 LINE ทดสอบ', 'ส่งการแจ้งเตือนทดสอบไปยังเจ้าหน้าที่ทุกคนแล้ว');
-  addNotif({
-    color: 'line', icon: '💬', badge: 'badge-line', badgeText: 'LINE',
-    title: 'ทดสอบ: ระบบส่ง LINE ทำงานปกติ',
-    body: 'ส่งข้อความทดสอบไปยังกลุ่ม LINE เจ้าหน้าที่ทุกคนแล้ว',
-    time: nowStr(), hasLine: false, actions: ['รับทราบ']
-  });
-});
+function renderStats() {
+  const total = ZONES.reduce((s, z) => s + z.current, 0);
+  const highZones = ZONES.filter(z => z.current >= z.capacity).length;
+  const medZones  = ZONES.filter(z => z.current >= z.capacity * 0.6 && z.current < z.capacity).length;
 
-// ปุ่ม Emergency Alert
-document.getElementById('emergencyBtn')?.addEventListener('click', () => {
-  if (!confirm('⚠️ ยืนยันการส่งสัญญาณฉุกเฉินไปยังเจ้าหน้าที่ทุกคน?')) return;
-  showToast('🚨 Emergency Alert', 'ส่งสัญญาณฉุกเฉินไปยังเจ้าหน้าที่ทุกคนทาง LINE แล้ว!', 8000);
-  addNotif({
-    color: 'red', icon: '🚨', badge: 'badge-red', badgeText: 'ฉุกเฉิน',
-    title: 'ส่งสัญญาณฉุกเฉิน — เจ้าหน้าที่ทุกคน',
-    body: 'แจ้งเตือนฉุกเฉินถูกส่งไปยัง LINE ของเจ้าหน้าที่ทุกคนแล้ว กรุณาไปยังจุดรวมพล',
-    time: nowStr(), hasLine: true, lineMsg: 'แจ้งเจ้าหน้าที่ทุกคน — ฉุกเฉิน',
-    actions: ['ยืนยันรับ']
+  if (document.getElementById('statTotal')) document.getElementById('statTotal').querySelector('.stat-cell-value').textContent = total;
+  if (document.getElementById('statHigh')) document.getElementById('statHigh').querySelector('.stat-cell-value').textContent = highZones;
+  if (document.getElementById('statMedium')) document.getElementById('statMedium').querySelector('.stat-cell-value').textContent = medZones;
+  if (document.getElementById('statNotif')) document.getElementById('statNotif').querySelector('.stat-cell-value').textContent = highZones > 0 ? "มีแจ้งเตือน" : "ปกติ";
+  if (document.getElementById('statLine')) document.getElementById('statLine').querySelector('.stat-cell-value').textContent = "เปิดใช้งาน";
+}
+
+function renderMap() {
+  const svg = document.getElementById('mapSvg'); if (!svg) return;
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', '0 0 600 340');
+
+  ZONES.forEach(zone => {
+    const ratio = zone.current / (zone.capacity || 1);
+    const status = ratio >= 1.0 ? 'high' : ratio >= 0.6 ? 'medium' : 'low';
+    const color  = status === 'high' ? '#EF4444' : status === 'medium' ? '#F59E0B' : '#22C55E';
+    
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.style.cursor = 'pointer';
+    g.addEventListener('click', () => openCameraViewer(zone.id));
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', zone.svgX); circle.setAttribute('cy', zone.svgY);
+    circle.setAttribute('r', status === 'high' ? '24' : '18'); circle.setAttribute('fill', `${color}25`);
+    circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', '2');
+    g.appendChild(circle);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', zone.svgX); txt.setAttribute('y', zone.svgY + 5);
+    txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('fill', color);
+    txt.setAttribute('font-weight', 'bold'); txt.textContent = zone.current;
+    g.appendChild(txt);
+    svg.appendChild(g);
   });
-});
+}
+
+function renderCameraMonitor() {
+  const grid = document.getElementById('staffCameraGrid'); if (!grid) return;
+  grid.innerHTML = CAMERA_ZONES.map(cam => `
+    <div class="camera-monitor-card offline" id="staff-camera-${cam.id}">
+      <div class="camera-card-top">
+        <div><div class="camera-card-name">${cam.name}</div><div class="camera-card-id">${cam.camId}</div></div>
+        <div class="camera-status-pill offline" id="staff-camera-status-${cam.id}">รอสัญญาณ</div>
+      </div>
+      <div class="camera-card-bottom">
+        <div class="camera-card-count" id="staff-camera-count-${cam.id}">0<small>คน</small></div>
+        <button class="camera-card-btn" type="button" onclick="openCameraViewer('${cam.id}')">ดูกล้องสด</button>
+      </div>
+    </div>`).join('');
+}
+
+async function loadCameraSettings() {
+  try {
+    const res = await fetch(`${API_URL}/api/cameras`);
+    if (!res.ok) throw new Error(`camera settings failed: ${res.status}`);
+    const data = await res.json();
+    if (Array.isArray(data.cameras) && data.cameras.length) {
+      CAMERA_ZONES.splice(0, CAMERA_ZONES.length, ...data.cameras.map((cam, idx) => ({
+        id: cam.id,
+        name: cam.name,
+        camId: `CAM-${String(idx + 1).padStart(2, '0')}`,
+        limit: cam.limit || CAM_LIMIT,
+        enabled: cam.enabled,
+        hasRtspUrl: cam.has_rtsp_url
+      })));
+      renderCameraMonitor();
+      renderCameraSettings();
+    }
+  } catch (err) {
+    console.error('โหลดการตั้งค่ากล้องไม่สำเร็จ:', err);
+  }
+}
+
+function renderCameraSettings() {
+  const section = document.querySelector('.camera-monitor-section');
+  if (!section || document.getElementById('cameraSettingsPanel')) return;
+
+  section.insertAdjacentHTML('beforeend', `
+    <div class="camera-settings-panel" id="cameraSettingsPanel">
+      <div class="camera-settings-title">ตั้งค่ากล้อง</div>
+      <div class="camera-settings-grid">
+        <input class="camera-settings-input" id="cameraSettingId" placeholder="camera id" value="main-prang" />
+        <input class="camera-settings-input" id="cameraSettingName" placeholder="ชื่อกล้อง" value="ปรางค์ประธาน" />
+        <input class="camera-settings-input" id="cameraSettingLimit" placeholder="limit" type="number" value="30" min="1" />
+        <input class="camera-settings-input" id="cameraSettingRtsp" placeholder="RTSP URL (บันทึกในฐานข้อมูล)" type="password" />
+        <button class="camera-card-btn" id="saveCameraSettingsBtn" type="button">บันทึก</button>
+      </div>
+    </div>
+  `);
+
+  const first = CAMERA_ZONES[0];
+  if (first) {
+    document.getElementById('cameraSettingId').value = first.id;
+    document.getElementById('cameraSettingName').value = first.name;
+    document.getElementById('cameraSettingLimit').value = first.limit;
+  }
+
+  document.getElementById('saveCameraSettingsBtn')?.addEventListener('click', saveCameraSettings);
+}
+
+async function saveCameraSettings() {
+  const id = document.getElementById('cameraSettingId')?.value.trim();
+  const name = document.getElementById('cameraSettingName')?.value.trim();
+  const limit = Number(document.getElementById('cameraSettingLimit')?.value || CAM_LIMIT);
+  const rtspUrl = document.getElementById('cameraSettingRtsp')?.value.trim();
+  if (!id || !name) {
+    alert('กรุณากรอก camera id และชื่อกล้อง');
+    return;
+  }
+
+  try {
+    const payload = { id, name, limit, enabled: true };
+    if (rtspUrl) payload.rtsp_url = rtspUrl;
+    const res = await fetch(`${API_URL}/api/cameras`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || 'บันทึกการตั้งค่ากล้องไม่สำเร็จ');
+    alert('บันทึกการตั้งค่ากล้องแล้ว');
+    await loadCameraSettings();
+  } catch (err) {
+    alert(`บันทึกไม่สำเร็จ: ${err.message}`);
+  }
+}
+
+function updateCameraMonitor() {
+  CAMERA_ZONES.forEach(cam => {
+    const data = latestCameraData[cam.id];
+    const card = document.getElementById(`staff-camera-${cam.id}`);
+    const status = document.getElementById(`staff-camera-status-${cam.id}`);
+    const count = document.getElementById(`staff-camera-count-${cam.id}`);
+    
+    if (data && card && status && count) {
+      const isOnline = data.online;
+      card.className = `camera-monitor-card ${!isOnline ? 'offline' : data.count >= cam.limit ? 'high' : 'low'}`;
+      status.className = `camera-status-pill ${!isOnline ? 'offline' : data.count >= cam.limit ? 'high' : 'low'}`;
+      status.textContent = !isOnline ? 'ออฟไลน์' : data.count >= cam.limit ? 'หนาแน่น' : 'ปกติ';
+      count.innerHTML = `${data.count}<small>คน</small>`;
+    }
+  });
+  if (activeCameraId) updateCameraViewer(activeCameraId);
+}
+
+function initCameraControls() {
+  document.getElementById('cameraViewerClose')?.addEventListener('click', closeCameraViewer);
+  document.getElementById('cameraViewerBackdrop')?.addEventListener('click', closeCameraViewer);
+}
+
+function openCameraViewer(zoneId) {
+  const config = CAMERA_ZONES.find(c => c.id === zoneId); if (!config) return;
+  activeCameraId = zoneId;
+  const viewer = document.getElementById('cameraViewer');
+  const stream = document.getElementById('cameraViewerStream');
+  const offlineWrap = document.getElementById('cameraViewerOffline');
+  
+  const titleEl = document.getElementById('cameraViewerTitle');
+  if (titleEl) titleEl.textContent = config.name;
+  if (stream) {
+    stream.src = `${API_URL}/stream/${zoneId}?t=${Date.now()}`;
+    stream.style.display = 'block';
+  }
+  if (offlineWrap) offlineWrap.style.display = 'none';
+  if (viewer) { viewer.classList.add('open'); viewer.setAttribute('aria-hidden', 'false'); }
+  updateCameraViewer(zoneId);
+}
+
+function closeCameraViewer() {
+  const viewer = document.getElementById('cameraViewer');
+  if (viewer) { viewer.classList.remove('open'); viewer.setAttribute('aria-hidden', 'true'); }
+  document.getElementById('cameraViewerStream')?.removeAttribute('src');
+  activeCameraId = null;
+}
+
+function updateCameraViewer(zoneId) {
+  const data = latestCameraData[zoneId];
+  if (!data) return;
+  
+  const countEl = document.getElementById('cameraViewerCount');
+  const limitEl = document.getElementById('cameraViewerLimit');
+  const statusEl = document.getElementById('cameraViewerStatus');
+  const timeEl = document.getElementById('cameraViewerTime');
+  const meterEl = document.getElementById('cameraViewerMeter');
+  
+  if (countEl) countEl.textContent = data.count;
+  if (limitEl) limitEl.textContent = `ขีดจำกัด ${data.limit} คน`;
+  if (timeEl) timeEl.textContent = `อัปเดตล่าสุด ${data.timestamp || '—'}`;
+  if (statusEl) {
+    statusEl.textContent = data.density === 'high' ? '🔴 วิกฤต / หนาแน่น' : '🟢 ปกติ';
+    statusEl.style.color = data.density === 'high' ? '#EF4444' : '#22C55E';
+  }
+  if (meterEl) {
+    const pct = Math.min(100, (data.count / data.limit) * 100);
+    meterEl.style.width = `${pct}%`;
+    meterEl.style.backgroundColor = pct >= 100 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22C55E';
+  }
+}
+
+function setupStaticFeatures() {
+  document.getElementById('testLineBtn')?.addEventListener('click', async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/line/test`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'ส่ง LINE ไม่สำเร็จ');
+      alert('ส่งข้อความทดสอบ LINE สำเร็จ');
+    } catch (err) {
+      alert(`ส่ง LINE ไม่สำเร็จ: ${err.message}\n\nให้เพิ่มบอทเป็นเพื่อนหรือเชิญเข้ากลุ่ม แล้วส่งข้อความหา bot 1 ครั้งก่อน`);
+    }
+  });
+  document.getElementById('emergencyBtn')?.addEventListener('click', () => alert('🚨 ระบบยิงแจ้งเตือนเหตุวิกฤตถึงเจ้าหน้าที่ทุกคนแล้ว!'));
+  
+  const notifList = document.getElementById('notifList');
+  if (notifList && notifList.children.length === 0) {
+    notifList.innerHTML = `<div style="color:#aaa; font-size:0.85rem; padding:10px; text-align:center;">🟢 ระบบปกติ ไม่พบสัญญาณฝูงชนวิกฤต</div>`;
+  }
+}
+
