@@ -18,6 +18,7 @@ const ZONES = [
 
 const CAMERA_ZONES = [
   { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: 30 },
+  { id: 'south-gopura', name: 'โคปุระทิศใต้', camId: 'CAM-02', limit: 30 },
 ];
 
 let latestCameraData = {};
@@ -237,6 +238,7 @@ function renderChartHistoryControls() {
     : `ย้อนหลัง ${chartHistoryOffset} ช่วง`;
 
   controls.innerHTML = `
+    <div class="history-label">ดูสถิติย้อนหลัง</div>
     <div class="history-control-left">
       <button class="history-btn" type="button" onclick="window.shiftChartHistory(1)">ย้อนกลับ</button>
       <button class="history-btn current" type="button" onclick="window.resetChartHistory()">ปัจจุบัน</button>
@@ -508,6 +510,7 @@ async function loadCameraSettings() {
       })));
       renderCameraMonitor();
       renderCameraSettings();
+      updateCameraSettingsList();
     }
   } catch (err) {
     console.error('โหลดการตั้งค่ากล้องไม่สำเร็จ:', err);
@@ -521,6 +524,7 @@ function renderCameraSettings() {
   section.insertAdjacentHTML('beforeend', `
     <div class="camera-settings-panel" id="cameraSettingsPanel">
       <div class="camera-settings-title">ตั้งค่ากล้อง</div>
+      <div class="camera-settings-list" id="cameraSettingsList"></div>
       <div class="camera-settings-grid">
         <input class="camera-settings-input" id="cameraSettingId" placeholder="camera id" value="main-prang" />
         <input class="camera-settings-input" id="cameraSettingName" placeholder="ชื่อกล้อง" value="ปรางค์ประธาน" />
@@ -539,7 +543,27 @@ function renderCameraSettings() {
   }
 
   document.getElementById('saveCameraSettingsBtn')?.addEventListener('click', saveCameraSettings);
+  updateCameraSettingsList();
 }
+
+function updateCameraSettingsList() {
+  const list = document.getElementById('cameraSettingsList');
+  if (!list) return;
+  list.innerHTML = CAMERA_ZONES.map(cam => `
+    <button class="camera-settings-chip" type="button" onclick="window.pickCameraSetting('${cam.id}')">
+      ${cam.camId} · ${cam.name}
+    </button>
+  `).join('');
+}
+
+window.pickCameraSetting = function(cameraId) {
+  const cam = CAMERA_ZONES.find(item => item.id === cameraId);
+  if (!cam) return;
+  document.getElementById('cameraSettingId').value = cam.id;
+  document.getElementById('cameraSettingName').value = cam.name;
+  document.getElementById('cameraSettingLimit').value = cam.limit || CAM_LIMIT;
+  document.getElementById('cameraSettingRtsp').value = '';
+};
 
 async function saveCameraSettings() {
   const id = document.getElementById('cameraSettingId')?.value.trim();

@@ -24,3 +24,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 INSERT INTO cameras (id, name, camera_limit, enabled)
 VALUES ('main-prang', 'ปรางค์ประธาน', 30, TRUE)
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO cameras (id, name, camera_limit, enabled)
+VALUES ('south-gopura', 'โคปุระทิศใต้', 30, TRUE)
+ON CONFLICT (id) DO NOTHING;

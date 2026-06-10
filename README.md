@@ -108,3 +108,31 @@ python count.py
 ```
 
 On macOS/Linux use `export` instead of `set`.
+
+To run the second camera, start a second worker with another `CAMERA_ID` and
+`RTSP_URL`:
+
+```bash
+set CAMERA_ID=south-gopura
+set CAMERA_NAME=โคปุระทิศใต้
+set CAMERA_LIMIT=30
+set RTSP_URL=rtsp://user:password@second-camera-private-ip:554/stream2
+python count.py
+```
+
+The dashboard and `camera.html` load camera metadata from `/api/cameras`, so
+both `main-prang` and `south-gopura` appear automatically after deploy.
+
+## Historical Charts
+
+The staff dashboard chart supports historical navigation for:
+
+- minute: 10-minute windows
+- hour: previous days
+- day: previous weeks
+- month: previous years
+- year: 3-year windows
+
+Use the chart tabs and the history controls under the tabs. Historical data is
+read from `visitor_logs`, which is filled by `/api/local/counts` whenever the
+local camera worker sends a new count.

@@ -84,15 +84,30 @@
 <div class="camera-grid" id="cameraGrid"></div>
 
 <script>
-const LIMIT   = 30;
 const API_URL = window.SMARTFLOW_API_URL || window.location.origin;
 
 // รายการกล้อง — id ต้องตรงกับ CAMERAS ใน server.py
-const CAMERAS = [
+let CAMERAS = [
   { id: 'main-prang',   name: 'ปรางค์ประธาน' },
-  //{ id: 'south-gopura', name: 'โคปุระทิศใต้' },
-  //{ id: 'gallery',      name: 'ระเบียงคด' }
+  { id: 'south-gopura', name: 'โคปุระทิศใต้' },
 ];
+
+async function loadCameras() {
+  try {
+    const res = await fetch(`${API_URL}/api/cameras`);
+    if (!res.ok) throw new Error(`camera request failed: ${res.status}`);
+    const data = await res.json();
+    if (Array.isArray(data.cameras) && data.cameras.length) {
+      CAMERAS = data.cameras.map(cam => ({
+        id: cam.id,
+        name: cam.name,
+        limit: cam.limit || 30,
+      }));
+    }
+  } catch(e) {
+    // ใช้ค่าเริ่มต้นถ้า backend ยังไม่พร้อม
+  }
+}
 
 function buildCards() {
   const grid = document.getElementById('cameraGrid');
@@ -136,11 +151,13 @@ function buildCards() {
 
 function updateCards(data) {
   for (const [zoneId, info] of Object.entries(data)) {
+    const camConfig = CAMERAS.find(cam => cam.id === zoneId) || {};
+    const limit      = Number(info.limit || camConfig.limit || 30);
     const count      = info.count;
-    const pct        = Math.min((count / LIMIT) * 100, 100);
-    const color      = count >= LIMIT ? '#e74c3c' : count >= LIMIT*0.7 ? '#f39c12' : '#4caf50';
-    const badgeCls   = count >= LIMIT ? 'badge-over' : count >= LIMIT*0.7 ? 'badge-warn' : 'badge-ok';
-    const statusText = count >= LIMIT ? '🔴 เกินขีดจำกัด!' : count >= LIMIT*0.7 ? '🟡 เฝ้าระวัง' : '🟢 ปกติ';
+    const pct        = Math.min((count / limit) * 100, 100);
+    const color      = count >= limit ? '#e74c3c' : count >= limit*0.7 ? '#f39c12' : '#4caf50';
+    const badgeCls   = count >= limit ? 'badge-over' : count >= limit*0.7 ? 'badge-warn' : 'badge-ok';
+    const statusText = count >= limit ? '🔴 เกินขีดจำกัด!' : count >= limit*0.7 ? '🟡 เฝ้าระวัง' : '🟢 ปกติ';
 
     const badge    = document.getElementById(`badge-${zoneId}`);
     const bar      = document.getElementById(`bar-${zoneId}`);
@@ -151,10 +168,10 @@ function updateCards(data) {
 
     if (badge)    { badge.textContent = `${count} คน`; badge.className = `badge-count ${badgeCls}`; }
     if (bar)      { bar.style.width = `${pct}%`; bar.style.background = color; }
-    if (barLabel) barLabel.textContent = `${count} / ${LIMIT} คน`;
+    if (barLabel) barLabel.textContent = `${count} / ${limit} คน`;
     if (status)   status.textContent   = statusText;
     if (timeEl)   timeEl.textContent   = info.timestamp || '—';
-    if (card)     card.classList.toggle('over-limit', count >= LIMIT);
+    if (card)     card.classList.toggle('over-limit', count >= limit);
   }
 }
 
@@ -166,8 +183,10 @@ async function pollCounts() {
   } catch(e) { /* server ยังไม่พร้อม */ }
 }
 
-buildCards();
-pollCounts();
+loadCameras().then(() => {
+  buildCards();
+  pollCounts();
+});
 setInterval(pollCounts, 2000);
 </script>
 </body>

@@ -64,6 +64,23 @@ LOG_FILE_PATH = DATA_DIR / "visitor_history_log.csv"
 LINE_CONFIG_FILE = DATA_DIR / "line_alert_config.json"
 LINE_LAST_WEBHOOK_FILE = DATA_DIR / "line_last_webhook.json"
 
+DEFAULT_CAMERAS = [
+    {
+        "id": "main-prang",
+        "name": "ปรางค์ประธาน",
+        "env_url": "CAMERA_MAIN_PRANG_RTSP_URL",
+        "limit": DEFAULT_CAMERA_LIMIT,
+        "enabled": True,
+    },
+    {
+        "id": "south-gopura",
+        "name": "โคปุระทิศใต้",
+        "env_url": "CAMERA_SOUTH_GOPURA_RTSP_URL",
+        "limit": DEFAULT_CAMERA_LIMIT,
+        "enabled": True,
+    },
+]
+
 if cv2:
     os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = os.getenv("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
     os.environ["OPENCV_FFMPEG_LOGLEVEL"] = os.getenv("OPENCV_FFMPEG_LOGLEVEL", "16")
@@ -138,14 +155,21 @@ def init_database():
                 )
                 """
             )
-            cur.execute(
-                """
-                INSERT INTO cameras (id, name, camera_limit, enabled)
-                VALUES (%s, %s, %s, TRUE)
-                ON CONFLICT (id) DO NOTHING
-                """,
-                ("main-prang", "ปรางค์ประธาน", DEFAULT_CAMERA_LIMIT),
-            )
+            for camera in DEFAULT_CAMERAS:
+                cur.execute(
+                    """
+                    INSERT INTO cameras (id, name, rtsp_url, camera_limit, enabled)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                    """,
+                    (
+                        camera["id"],
+                        camera["name"],
+                        os.getenv(camera["env_url"]),
+                        camera["limit"],
+                        camera["enabled"],
+                    ),
+                )
 
 
 def row_to_camera(row):
@@ -183,13 +207,14 @@ def get_cameras():
             logger.warning("Invalid CAMERAS_JSON: %s", exc)
 
     return {
-        "main-prang": {
-            "id": "main-prang",
-            "name": "ปรางค์ประธาน",
-            "url": os.getenv("CAMERA_MAIN_PRANG_RTSP_URL"),
-            "limit": DEFAULT_CAMERA_LIMIT,
-            "enabled": True,
+        camera["id"]: {
+            "id": camera["id"],
+            "name": camera["name"],
+            "url": os.getenv(camera["env_url"]),
+            "limit": camera["limit"],
+            "enabled": camera["enabled"],
         }
+        for camera in DEFAULT_CAMERAS
     }
 
 
@@ -503,7 +528,7 @@ def get_advanced_analytics():
         if y_th_str in year_values:
             year_values[y_th_str] = max(year_values[y_th_str], count)
 
-    current_cam_count = zone_data.get("main-prang", {}).get("count", 0)
+    current_cam_count = sum(int(info.get("count", 0) or 0) for info in zone_data.values())
     for m in minute_labels:
         if minute_values[m] == 0 and current_cam_count > 0:
             minute_values[m] = current_cam_count

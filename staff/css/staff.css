@@ -646,6 +646,26 @@ body {
   color: #fff;
   margin-bottom: 10px;
 }
+.camera-settings-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.camera-settings-chip {
+  border: 1px solid rgba(255,255,255,0.08);
+  background-color: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.camera-settings-chip:hover {
+  color: #fff;
+  border-color: rgba(217, 123, 53, 0.5);
+}
 .camera-settings-grid {
   display: grid;
   grid-template-columns: minmax(120px, 0.8fr) minmax(160px, 1fr) 90px minmax(220px, 1.4fr) auto;
@@ -885,6 +905,13 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.history-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: auto;
 }
 
 .history-btn {
