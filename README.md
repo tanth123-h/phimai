@@ -1,138 +1,146 @@
 # Phimai SmartFlow AI
 
-FastAPI backend, static visitor site, staff dashboard, LINE alerts, and a local RTSP AI worker for crowd counting.
+ระบบ FastAPI สำหรับรันบนเครื่อง local ที่เข้าถึงกล้อง RTSP ได้ แล้วเปิดลิงก์สาธารณะด้วย ngrok
 
-## Architecture Report
-
-Render should run only the public web/API service:
+## โครงสร้าง
 
 ```text
 RTSP Cameras
-  -> Local AI Service (count.py, runs on the camera LAN)
-  -> POST /api/local/counts
-  -> Render FastAPI Backend
-  -> PostgreSQL + Dashboard + LINE Notifications
+  -> server.py บนเครื่อง local
+  -> YOLO นับคน
+  -> Dashboard + กราฟย้อนหลัง + LINE Notifications
+  -> เปิดให้คนอื่นเข้าผ่าน ngrok
 ```
 
-Keep RTSP processing local. Most cameras are on private IP addresses, and Render cannot reach `192.168.x.x` camera networks. The Render service stores camera settings, receives counts, serves dashboards, runs analytics, and sends LINE notifications.
+โหมดนี้ไม่ต้องใช้ Render, PostgreSQL, Blueprint, หรือ cloud deploy ใด ๆ
 
-## Deployment Blockers Found
-
-- Hardcoded RTSP URL and credentials in `server.py` and `count.py`.
-- Hardcoded LINE access token fallback in `server.py`.
-- Dashboard JavaScript used `hostname:8000`, which breaks behind Render HTTPS.
-- Local CSV/JSON files were used for visitor logs and LINE target state.
-- No `requirements.txt`, `render.yaml`, health check, or documented start command.
-- Camera processing started inside the web process on startup, which can block cloud deploys and cannot reach private cameras.
-- The local repo folder is not a Git working copy, although the upstream repo is `https://github.com/tanth123-h/phimai`.
-
-## Required Environment Variables
-
-Render web service:
-
-- `DATABASE_URL`: Render PostgreSQL connection string.
-- `PORT`: provided by Render.
-- `ENABLE_CAMERA_WORKER=false`: keep false on Render.
-- `LOCAL_INGEST_TOKEN`: shared token used by the local AI worker.
-- `LINE_CHANNEL_ACCESS_TOKEN`: LINE Messaging API channel token.
-- `LINE_TARGET_ID`: group, room, or user ID for push messages. Optional if captured through webhook.
-- `LINE_ALERT_COOLDOWN_SECONDS=300`
-- `LOG_LEVEL=INFO`
-- `CORS_ALLOW_ORIGINS=*`
-
-Local AI worker:
-
-- `RENDER_API_URL=https://your-render-service.onrender.com`
-- `LOCAL_INGEST_TOKEN`: same value as Render.
-- `RTSP_URL=rtsp://user:password@private-camera-ip:554/stream2`
-- `CAMERA_ID=main-prang`
-- `CAMERA_NAME=ปรางค์ประธาน`
-- `CAMERA_LIMIT=30`
-- `YOLO_MODEL_PATH=yolov8m.pt`
-
-## Render Commands
-
-Build command:
+## ติดตั้ง
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Start command:
-
-```bash
-uvicorn server:app --host 0.0.0.0 --port $PORT
-```
-
-Health check path:
+ต้องมีไฟล์โมเดล:
 
 ```text
-/healthz
+yolov8m.pt
 ```
 
-## Database Migration Plan
+## ตั้งค่ากล้อง
 
-The app creates tables automatically on startup when `DATABASE_URL` exists. For manual setup, run:
+วิธีที่ 1: ตั้งผ่าน environment variables
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_render_init.sql
+set CAMERA_MAIN_PRANG_RTSP_URL=rtsp://user:password@camera-ip:554/stream2
+set CAMERA_SOUTH_GOPURA_RTSP_URL=rtsp://user:password@second-camera-ip:554/stream2
 ```
 
-Tables:
+วิธีที่ 2: เปิดหน้า staff แล้วแก้ในแผง “ตั้งค่ากล้อง”
 
-- `cameras`: dashboard-editable camera metadata and RTSP URL.
-- `visitor_logs`: PostgreSQL replacement for `visitor_history_log.csv`.
-- `app_settings`: LINE target and small operational settings.
+ระบบจะบันทึกลงไฟล์ local:
 
-## Deployment Checklist
+```text
+camera_config.json
+```
 
-1. Push this repo to GitHub.
-2. Create a Render PostgreSQL database.
-3. Create a Render web service from the repo or use `render.yaml`.
-4. Set the environment variables above.
-5. Deploy and confirm `/healthz` returns `{"ok": true}`.
-6. Open `/staff/` and save camera metadata in the camera settings panel.
-7. Configure LINE webhook URL as `https://your-render-service.onrender.com/api/line/webhook`.
-8. Add the LINE bot to the target group and send one message, or set `LINE_TARGET_ID`.
-9. On the local camera machine, install `requirements-local.txt` and run `count.py`.
-10. Confirm `/api/counts` shows live counts and the staff dashboard updates.
+ถ้าเพิ่งแก้ RTSP URL แนะนำ restart `server.py` หนึ่งครั้งเพื่อให้ worker เปิดกล้องด้วยค่าใหม่
 
-## Local AI Service
+## รันเว็บ
 
 ```bash
-pip install -r requirements-local.txt
-set RENDER_API_URL=https://your-render-service.onrender.com
-set LOCAL_INGEST_TOKEN=the-same-token-from-render
-set RTSP_URL=rtsp://user:password@camera-private-ip:554/stream2
-python count.py
+python server.py
 ```
 
-On macOS/Linux use `export` instead of `set`.
+เปิดเว็บ:
 
-To run the second camera, start a second worker with another `CAMERA_ID` and
-`RTSP_URL`:
+```text
+http://localhost:8000/
+```
+
+หน้าเจ้าหน้าที่:
+
+```text
+http://localhost:8000/staff/
+```
+
+หน้าดูกล้อง:
+
+```text
+http://localhost:8000/camera.html
+```
+
+รหัส staff เริ่มต้น:
+
+```text
+1234
+```
+
+## เปิดผ่าน ngrok
+
+เปิด terminal อีกหน้าหนึ่ง:
 
 ```bash
-set CAMERA_ID=south-gopura
-set CAMERA_NAME=โคปุระทิศใต้
-set CAMERA_LIMIT=30
-set RTSP_URL=rtsp://user:password@second-camera-private-ip:554/stream2
-python count.py
+ngrok http 8000
 ```
 
-The dashboard and `camera.html` load camera metadata from `/api/cameras`, so
-both `main-prang` and `south-gopura` appear automatically after deploy.
+ngrok จะให้ URL เช่น:
 
-## Historical Charts
+```text
+https://xxxx-xx-xx-xx.ngrok-free.app
+```
 
-The staff dashboard chart supports historical navigation for:
+เอา URL นี้ไปเปิด:
 
-- minute: 10-minute windows
-- hour: previous days
-- day: previous weeks
-- month: previous years
-- year: 3-year windows
+```text
+https://xxxx-xx-xx-xx.ngrok-free.app/
+https://xxxx-xx-xx-xx.ngrok-free.app/staff/
+https://xxxx-xx-xx-xx.ngrok-free.app/camera.html
+```
 
-Use the chart tabs and the history controls under the tabs. Historical data is
-read from `visitor_logs`, which is filled by `/api/local/counts` whenever the
-local camera worker sends a new count.
+## LINE Notifications
+
+ตั้งค่า token:
+
+```bash
+set LINE_CHANNEL_ACCESS_TOKEN=your-line-token
+```
+
+ถ้ารู้ target id แล้ว:
+
+```bash
+set LINE_TARGET_ID=your-group-or-user-id
+```
+
+ถ้าต้องการให้ระบบจำ target id จาก webhook ให้ตั้ง webhook URL ใน LINE Developers เป็น:
+
+```text
+https://xxxx-xx-xx-xx.ngrok-free.app/api/line/webhook
+```
+
+จากนั้นส่งข้อความหา bot หนึ่งครั้ง ระบบจะบันทึก target ลง `line_alert_config.json`
+
+## กราฟย้อนหลัง
+
+ระบบอ่านจากไฟล์:
+
+```text
+visitor_history_log.csv
+```
+
+เมื่อกล้องส่งจำนวนคนใหม่ ระบบจะบันทึกจำนวนลง CSV แล้ว dashboard จะใช้ข้อมูลนี้ทำกราฟ:
+
+- ราย 10 นาที
+- รายชั่วโมง
+- รายวัน
+- รายเดือน
+- รายปี
+
+## ไฟล์ local ที่ไม่ควร commit
+
+```text
+camera_config.json
+line_alert_config.json
+line_last_webhook.json
+visitor_history_log.csv
+*.pt
+```

@@ -1,9 +1,8 @@
 """
-SmartFlow AI backend.
+SmartFlow AI local backend.
 
-Render runs this as the public API and dashboard host. RTSP processing is
-disabled by default for cloud deployments because most cameras live on a
-private network; run the local worker separately and post updates to this API.
+Run this on the machine that can access the RTSP cameras, then expose it with
+ngrok when you need a public URL.
 """
 
 import asyncio
@@ -11,34 +10,18 @@ import csv
 import json
 import logging
 import os
-import time
 import threading
-import urllib.parse
+import time
 import urllib.request
-from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 
-try:
-    import cv2
-except Exception:
-    cv2 = None
-
-try:
-    import psycopg2
-    import psycopg2.extras
-except Exception:
-    psycopg2 = None
-
-try:
-    from ultralytics import YOLO
-except Exception:
-    YOLO = None
-
-from fastapi import FastAPI, Header, HTTPException, Request, WebSocket
+import cv2
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from ultralytics import YOLO
 
 
 logging.basicConfig(
@@ -51,44 +34,42 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
 DEFAULT_CAMERA_LIMIT = int(os.getenv("DEFAULT_CAMERA_LIMIT", "30"))
-ENABLE_CAMERA_WORKER = os.getenv("ENABLE_CAMERA_WORKER", "false").lower() in {"1", "true", "yes", "on"}
-LOCAL_INGEST_TOKEN = os.getenv("LOCAL_INGEST_TOKEN")
+ENABLE_CAMERA_WORKER = os.getenv("ENABLE_CAMERA_WORKER", "true").lower() in {"1", "true", "yes", "on"}
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_TARGET_ID = os.getenv("LINE_TARGET_ID")
 LINE_ALERT_COOLDOWN_SECONDS = int(os.getenv("LINE_ALERT_COOLDOWN_SECONDS", "300"))
 YOLO_MODEL_PATH = os.getenv("YOLO_MODEL_PATH", str(BASE_DIR / "yolov8m.pt"))
 
+CAMERA_CONFIG_FILE = DATA_DIR / "camera_config.json"
 LOG_FILE_PATH = DATA_DIR / "visitor_history_log.csv"
 LINE_CONFIG_FILE = DATA_DIR / "line_alert_config.json"
 LINE_LAST_WEBHOOK_FILE = DATA_DIR / "line_last_webhook.json"
+
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = os.getenv("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
+os.environ["OPENCV_FFMPEG_LOGLEVEL"] = os.getenv("OPENCV_FFMPEG_LOGLEVEL", "16")
 
 DEFAULT_CAMERAS = [
     {
         "id": "main-prang",
         "name": "ปรางค์ประธาน",
-        "env_url": "CAMERA_MAIN_PRANG_RTSP_URL",
+        "url": os.getenv("CAMERA_MAIN_PRANG_RTSP_URL", ""),
         "limit": DEFAULT_CAMERA_LIMIT,
         "enabled": True,
     },
     {
         "id": "south-gopura",
         "name": "โคปุระทิศใต้",
-        "env_url": "CAMERA_SOUTH_GOPURA_RTSP_URL",
+        "url": os.getenv("CAMERA_SOUTH_GOPURA_RTSP_URL", ""),
         "limit": DEFAULT_CAMERA_LIMIT,
         "enabled": True,
     },
 ]
 
-if cv2:
-    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = os.getenv("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
-    os.environ["OPENCV_FFMPEG_LOGLEVEL"] = os.getenv("OPENCV_FFMPEG_LOGLEVEL", "16")
-
-app = FastAPI(title="Phimai SmartFlow AI")
+app = FastAPI(title="Phimai SmartFlow AI Local")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",") if origin.strip()],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -97,160 +78,85 @@ zone_data = {}
 latest_frames = {}
 last_logged_count = {}
 last_line_alert_at = {}
-camera_threads_started = False
+camera_threads = {}
 model = None
 
 
-@contextmanager
-def db_conn():
-    if not DATABASE_URL or not psycopg2:
-        yield None
-        return
-    conn = psycopg2.connect(DATABASE_URL)
-    try:
-        yield conn
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def init_database():
-    if not DATABASE_URL:
-        logger.warning("DATABASE_URL is not set. Using local file fallback for logs and LINE target.")
-        return
-    if not psycopg2:
-        raise RuntimeError("psycopg2-binary is required when DATABASE_URL is set")
-
-    with db_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS cameras (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    rtsp_url TEXT,
-                    camera_limit INTEGER NOT NULL DEFAULT 30,
-                    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                )
-                """
-            )
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS visitor_logs (
-                    id BIGSERIAL PRIMARY KEY,
-                    logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    zone_id TEXT NOT NULL,
-                    count INTEGER NOT NULL
-                )
-                """
-            )
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS app_settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT,
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                )
-                """
-            )
-            for camera in DEFAULT_CAMERAS:
-                cur.execute(
-                    """
-                    INSERT INTO cameras (id, name, rtsp_url, camera_limit, enabled)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (id) DO NOTHING
-                    """,
-                    (
-                        camera["id"],
-                        camera["name"],
-                        os.getenv(camera["env_url"]),
-                        camera["limit"],
-                        camera["enabled"],
-                    ),
-                )
-
-
-def row_to_camera(row):
-    return {
-        "id": row["id"],
-        "name": row["name"],
-        "url": row.get("rtsp_url"),
-        "limit": int(row["camera_limit"] or DEFAULT_CAMERA_LIMIT),
-        "enabled": bool(row["enabled"]),
-    }
-
-
-def get_cameras():
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT id, name, rtsp_url, camera_limit, enabled FROM cameras ORDER BY id")
-                return {row["id"]: row_to_camera(row) for row in cur.fetchall()}
-
-    env_cameras = os.getenv("CAMERAS_JSON")
-    if env_cameras:
+def load_camera_config():
+    if CAMERA_CONFIG_FILE.exists():
         try:
-            parsed = json.loads(env_cameras)
+            with CAMERA_CONFIG_FILE.open("r", encoding="utf-8") as file:
+                cameras = json.load(file)
             return {
                 item["id"]: {
                     "id": item["id"],
                     "name": item.get("name", item["id"]),
-                    "url": item.get("rtsp_url") or item.get("url"),
+                    "url": item.get("rtsp_url") or item.get("url") or "",
                     "limit": int(item.get("limit", DEFAULT_CAMERA_LIMIT)),
                     "enabled": bool(item.get("enabled", True)),
                 }
-                for item in parsed
+                for item in cameras
             }
         except Exception as exc:
-            logger.warning("Invalid CAMERAS_JSON: %s", exc)
+            logger.warning("Cannot read camera_config.json: %s", exc)
 
-    return {
-        camera["id"]: {
-            "id": camera["id"],
-            "name": camera["name"],
-            "url": os.getenv(camera["env_url"]),
-            "limit": camera["limit"],
-            "enabled": camera["enabled"],
-        }
-        for camera in DEFAULT_CAMERAS
-    }
+    return {camera["id"]: dict(camera) for camera in DEFAULT_CAMERAS}
+
+
+def save_camera_config(cameras):
+    payload = []
+    for camera in cameras.values():
+        payload.append(
+            {
+                "id": camera["id"],
+                "name": camera["name"],
+                "rtsp_url": camera.get("url", ""),
+                "limit": int(camera.get("limit", DEFAULT_CAMERA_LIMIT)),
+                "enabled": bool(camera.get("enabled", True)),
+            }
+        )
+    with CAMERA_CONFIG_FILE.open("w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+def get_cameras():
+    return load_camera_config()
 
 
 def upsert_camera(camera):
-    required = {"id", "name"}
-    if not required.issubset(camera):
+    camera_id = str(camera.get("id", "")).strip()
+    name = str(camera.get("name", "")).strip()
+    if not camera_id or not name:
         raise HTTPException(status_code=400, detail="Camera id and name are required")
 
-    camera_id = str(camera["id"]).strip()
-    if not camera_id:
-        raise HTTPException(status_code=400, detail="Camera id is required")
+    cameras = get_cameras()
+    existing = cameras.get(camera_id, {})
+    rtsp_url = camera.get("rtsp_url") or camera.get("url") or existing.get("url", "")
+    item = {
+        "id": camera_id,
+        "name": name,
+        "url": rtsp_url,
+        "limit": int(camera.get("limit") or camera.get("camera_limit") or existing.get("limit") or DEFAULT_CAMERA_LIMIT),
+        "enabled": bool(camera.get("enabled", existing.get("enabled", True))),
+    }
+    cameras[camera_id] = item
+    save_camera_config(cameras)
+    zone_data.setdefault(
+        camera_id,
+        {
+            "name": item["name"],
+            "count": 0,
+            "limit": item["limit"],
+            "density": "unknown",
+            "online": False,
+            "timestamp": None,
+        },
+    )
 
-    limit = int(camera.get("limit") or camera.get("camera_limit") or DEFAULT_CAMERA_LIMIT)
-    enabled = bool(camera.get("enabled", True))
-    rtsp_url = camera.get("rtsp_url") or camera.get("url")
+    if ENABLE_CAMERA_WORKER and item["enabled"] and item["url"] and camera_id not in camera_threads:
+        start_camera_thread(camera_id, item)
 
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO cameras (id, name, rtsp_url, camera_limit, enabled, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, NOW())
-                    ON CONFLICT (id) DO UPDATE SET
-                        name = EXCLUDED.name,
-                        rtsp_url = EXCLUDED.rtsp_url,
-                        camera_limit = EXCLUDED.camera_limit,
-                        enabled = EXCLUDED.enabled,
-                        updated_at = NOW()
-                    """,
-                    (camera_id, camera["name"], rtsp_url, limit, enabled),
-                )
-    else:
-        logger.warning("Camera settings are not persisted without DATABASE_URL")
-
-    return {"id": camera_id, "name": camera["name"], "rtsp_url": rtsp_url, "limit": limit, "enabled": enabled}
+    return item
 
 
 def save_visitor_log(zone_id, current_count):
@@ -258,30 +164,18 @@ def save_visitor_log(zone_id, current_count):
         return
     last_logged_count[zone_id] = current_count
 
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("INSERT INTO visitor_logs (zone_id, count) VALUES (%s, %s)", (zone_id, current_count))
-        return
-
     file_exists = LOG_FILE_PATH.exists()
     try:
         with LOG_FILE_PATH.open(mode="a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             if not file_exists:
-                writer.writerow(["วันเวลาที่บันทึก", "รหัสโซนกล้อง", "จำนวนคนที่พบจริง (คน)"])
+                writer.writerow(["recorded_at", "zone_id", "people_count"])
             writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), zone_id, current_count])
     except Exception as exc:
         logger.exception("Cannot write visitor log: %s", exc)
 
 
 def read_visitor_logs():
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT logged_at, zone_id, count FROM visitor_logs ORDER BY logged_at")
-                return [{"time": row["logged_at"].replace(tzinfo=None), "zone_id": row["zone_id"], "count": row["count"]} for row in cur.fetchall()]
-
     logs = []
     if not LOG_FILE_PATH.exists():
         return logs
@@ -293,7 +187,13 @@ def read_visitor_logs():
                 if len(row) < 3:
                     continue
                 try:
-                    logs.append({"time": datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S"), "zone_id": row[1], "count": int(row[2])})
+                    logs.append(
+                        {
+                            "time": datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S"),
+                            "zone_id": row[1],
+                            "count": int(row[2]),
+                        }
+                    )
                 except Exception:
                     continue
     except Exception:
@@ -301,36 +201,9 @@ def read_visitor_logs():
     return logs
 
 
-def get_setting(key):
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT value FROM app_settings WHERE key = %s", (key,))
-                row = cur.fetchone()
-                return row[0] if row else None
-    return None
-
-
-def set_setting(key, value):
-    if DATABASE_URL and psycopg2:
-        with db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO app_settings (key, value, updated_at)
-                    VALUES (%s, %s, NOW())
-                    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
-                    """,
-                    (key, value),
-                )
-
-
 def load_line_target_id():
     if LINE_TARGET_ID:
         return LINE_TARGET_ID
-    db_target = get_setting("line_target_id")
-    if db_target:
-        return db_target
     if not LINE_CONFIG_FILE.exists():
         return None
     try:
@@ -342,21 +215,18 @@ def load_line_target_id():
 def save_line_target_id(target_id, source_type="unknown"):
     if not target_id:
         return
-    set_setting("line_target_id", target_id)
-    set_setting("line_target_source_type", source_type)
-    if not DATABASE_URL:
-        LINE_CONFIG_FILE.write_text(
-            json.dumps(
-                {
-                    "target_id": target_id,
-                    "source_type": source_type,
-                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                },
-                ensure_ascii=False,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
+    LINE_CONFIG_FILE.write_text(
+        json.dumps(
+            {
+                "target_id": target_id,
+                "source_type": source_type,
+                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     logger.info("LINE target saved: %s %s", source_type, target_id)
 
 
@@ -365,7 +235,7 @@ def send_line_message(message):
     if not LINE_CHANNEL_ACCESS_TOKEN:
         return False, "missing LINE_CHANNEL_ACCESS_TOKEN"
     if not target_id:
-        return False, "missing LINE target. Set LINE_TARGET_ID or send a webhook event to the bot."
+        return False, "missing LINE target. Add bot to the target chat and send one message, or set LINE_TARGET_ID."
 
     payload = json.dumps({"to": target_id, "messages": [{"type": "text", "text": message}]}).encode("utf-8")
     req = urllib.request.Request(
@@ -436,17 +306,12 @@ def load_model():
     global model
     if model is not None:
         return model
-    if not YOLO:
-        raise RuntimeError("ultralytics is not installed")
     logger.info("Loading YOLO model from %s", YOLO_MODEL_PATH)
     model = YOLO(YOLO_MODEL_PATH)
     return model
 
 
 def process_camera(zone_id, config):
-    if not cv2:
-        logger.error("OpenCV is unavailable; camera worker cannot start")
-        return
     if not config.get("url"):
         logger.warning("Camera %s has no RTSP URL; skipping", zone_id)
         return
@@ -456,6 +321,7 @@ def process_camera(zone_id, config):
     while True:
         try:
             if cap is None or not cap.isOpened():
+                logger.info("Opening camera %s", zone_id)
                 cap = cv2.VideoCapture(config["url"], cv2.CAP_FFMPEG)
                 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
@@ -464,7 +330,14 @@ def process_camera(zone_id, config):
                 if cap is not None:
                     cap.release()
                 cap = None
-                zone_data[zone_id] = {"name": config.get("name", zone_id), "count": 0, "limit": config.get("limit", DEFAULT_CAMERA_LIMIT), "density": "unknown", "online": False}
+                zone_data[zone_id] = {
+                    "name": config.get("name", zone_id),
+                    "count": 0,
+                    "limit": config.get("limit", DEFAULT_CAMERA_LIMIT),
+                    "density": "unknown",
+                    "online": False,
+                    "timestamp": datetime.now().strftime("%H:%M:%S"),
+                }
                 time.sleep(3)
                 continue
 
@@ -478,9 +351,24 @@ def process_camera(zone_id, config):
                 apply_count_update(zone_id, count, config.get("name"), config.get("limit"), True, jpeg.tobytes())
         except Exception as exc:
             logger.exception("Camera worker error for %s: %s", zone_id, exc)
-            zone_data[zone_id] = {"name": config.get("name", zone_id), "count": 0, "limit": config.get("limit", DEFAULT_CAMERA_LIMIT), "density": "unknown", "online": False}
+            zone_data[zone_id] = {
+                "name": config.get("name", zone_id),
+                "count": 0,
+                "limit": config.get("limit", DEFAULT_CAMERA_LIMIT),
+                "density": "unknown",
+                "online": False,
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+            }
             time.sleep(5)
         time.sleep(0.01)
+
+
+def start_camera_thread(zone_id, config):
+    if zone_id in camera_threads:
+        return
+    thread = threading.Thread(target=process_camera, args=(zone_id, config), daemon=True)
+    camera_threads[zone_id] = thread
+    thread.start()
 
 
 async def generate_stream(zone_id):
@@ -576,8 +464,9 @@ def get_history_analytics(scale="hour", offset=0):
         period_label = f"{start.strftime('%d/%m/%Y %H:%M')} - {end.strftime('%H:%M')}"
         values = {label: 0 for label in labels}
         for item in logs:
-            if start <= item["time"] <= end and item["time"].strftime("%H:%M") in values:
-                values[item["time"].strftime("%H:%M")] = max(values[item["time"].strftime("%H:%M")], item["count"])
+            label = item["time"].strftime("%H:%M")
+            if start <= item["time"] <= end and label in values:
+                values[label] = max(values[label], item["count"])
     elif scale == "day":
         end_date = (now - timedelta(days=offset * 7)).date()
         dates = [end_date - timedelta(days=i) for i in range(6, -1, -1)]
@@ -626,28 +515,19 @@ def get_history_analytics(scale="hour", offset=0):
         "period_label": period_label,
         "labels": labels,
         "values": value_list,
-        "summary_text": f"<b>ข้อมูลย้อนหลังจากฐานข้อมูล:</b> {period_label}<br/>ช่วงที่พบคนมากที่สุดคือ <b>{peak_label}</b> จำนวน <b>{max_val} คน</b>",
+        "summary_text": f"<b>ข้อมูลย้อนหลังจากไฟล์บันทึก:</b> {period_label}<br/>ช่วงที่พบคนมากที่สุดคือ <b>{peak_label}</b> จำนวน <b>{max_val} คน</b>",
     }
-
-
-def verify_ingest_token(auth_header):
-    if not LOCAL_INGEST_TOKEN:
-        return
-    expected = f"Bearer {LOCAL_INGEST_TOKEN}"
-    if auth_header != expected:
-        raise HTTPException(status_code=401, detail="Invalid LOCAL_INGEST_TOKEN")
 
 
 @app.get("/healthz")
 async def healthz():
-    return {"ok": True, "database": bool(DATABASE_URL), "camera_worker": ENABLE_CAMERA_WORKER}
+    return {"ok": True, "mode": "local-ngrok", "camera_worker": ENABLE_CAMERA_WORKER}
 
 
 @app.get("/api/cameras")
 async def cameras_api():
-    cameras = list(get_cameras().values())
     public = []
-    for camera in cameras:
+    for camera in get_cameras().values():
         item = {key: value for key, value in camera.items() if key != "url"}
         item["has_rtsp_url"] = bool(camera.get("url"))
         public.append(item)
@@ -657,12 +537,11 @@ async def cameras_api():
 @app.post("/api/cameras")
 async def save_camera_api(payload: dict):
     camera = upsert_camera(payload)
-    return {"ok": True, "camera": {key: value for key, value in camera.items() if key != "rtsp_url"}}
+    return {"ok": True, "camera": {key: value for key, value in camera.items() if key != "url"}}
 
 
 @app.post("/api/local/counts")
-async def local_counts_api(payload: dict, authorization: str | None = Header(default=None)):
-    verify_ingest_token(authorization)
+async def local_counts_api(payload: dict):
     zone_id = payload.get("zone_id")
     if not zone_id:
         raise HTTPException(status_code=400, detail="zone_id is required")
@@ -711,8 +590,7 @@ async def get_analytics_history_api(scale: str = "hour", offset: int = 0):
 @app.post("/api/line/webhook")
 async def line_webhook(request: Request):
     payload = await request.json()
-    if not DATABASE_URL:
-        LINE_LAST_WEBHOOK_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    LINE_LAST_WEBHOOK_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     for event in payload.get("events", []):
         source = event.get("source", {})
@@ -748,16 +626,24 @@ async def line_test_api():
 
 @app.on_event("startup")
 async def startup():
-    global camera_threads_started
-    init_database()
-    if ENABLE_CAMERA_WORKER and not camera_threads_started:
+    if ENABLE_CAMERA_WORKER:
         for zone_id, config in get_cameras().items():
-            if config.get("enabled"):
-                threading.Thread(target=process_camera, args=(zone_id, config), daemon=True).start()
-        camera_threads_started = True
-        logger.info("Camera workers started")
+            zone_data.setdefault(
+                zone_id,
+                {
+                    "name": config["name"],
+                    "count": 0,
+                    "limit": config["limit"],
+                    "density": "unknown",
+                    "online": False,
+                    "timestamp": None,
+                },
+            )
+            if config.get("enabled") and config.get("url"):
+                start_camera_thread(zone_id, config)
+        logger.info("SmartFlow AI local camera workers started")
     else:
-        logger.info("Camera workers disabled. Use a local AI service to ingest counts.")
+        logger.info("Camera workers disabled by ENABLE_CAMERA_WORKER=false")
 
 
 @app.websocket("/ws")
@@ -777,4 +663,6 @@ app.mount("/", StaticFiles(directory=str(BASE_DIR), html=True), name="static")
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("server:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
+    port = int(os.environ.get("PORT", "8000"))
+    logger.info("Starting local server on http://0.0.0.0:%s", port)
+    uvicorn.run("server:app", host="0.0.0.0", port=port)

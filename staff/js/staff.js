@@ -284,7 +284,7 @@ async function loadChartHistory() {
       labels: [],
       values: [],
       period_label: 'โหลดข้อมูลย้อนหลังไม่สำเร็จ',
-      summary_text: 'ไม่สามารถโหลดข้อมูลย้อนหลังจาก backend ได้ กรุณาตรวจสอบว่า Render service พร้อมทำงาน'
+      summary_text: 'ไม่สามารถโหลดข้อมูลย้อนหลังจาก backend ได้ กรุณาตรวจสอบว่า server.py กำลังทำงานอยู่'
     };
   } finally {
     if (controls) controls.classList.remove('loading');

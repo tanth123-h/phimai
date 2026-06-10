@@ -3,6 +3,7 @@ __pycache__/
 .env
 line_alert_config.json
 line_last_webhook.json
+camera_config.json
 visitor_history_log.csv
 *.log
 *.pt
