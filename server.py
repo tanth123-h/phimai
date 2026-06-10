@@ -80,6 +80,7 @@ last_logged_count = {}
 last_line_alert_at = {}
 camera_threads = {}
 model = None
+line_alerts_sent = 0
 
 
 def load_camera_config():
@@ -251,14 +252,27 @@ def send_line_message(message):
         return False, str(exc)
 
 
+def build_crowd_alert_message(zone_id, config, count, limit):
+    zone_name = config.get("name", zone_id)
+    return (
+        "แจ้งเตือนความหนาแน่นผู้เยี่ยมชม\n"
+        f"กล้อง/จุดตรวจ: {zone_name}\n"
+        f"จำนวนคนปัจจุบัน: {count} คน\n"
+        f"ขีดจำกัดที่ตั้งไว้: {limit} คน\n"
+        f"เวลา: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "กรุณาส่งเจ้าหน้าที่เข้าตรวจสอบพื้นที่"
+    )
+
+
 def maybe_send_crowd_alert(zone_id, config, count):
+    global line_alerts_sent
     limit = int(config.get("limit", DEFAULT_CAMERA_LIMIT))
     if count < limit:
-        return
+        return False
 
     now_ts = time.time()
     if now_ts - last_line_alert_at.get(zone_id, 0) < LINE_ALERT_COOLDOWN_SECONDS:
-        return
+        return False
 
     message = (
         "แจ้งเตือนความหนาแน่นผู้เยี่ยมชม\n"
@@ -268,12 +282,25 @@ def maybe_send_crowd_alert(zone_id, config, count):
         f"เวลา: {datetime.now().strftime('%H:%M:%S')}\n"
         "กรุณาส่งเจ้าหน้าที่เข้าตรวจสอบพื้นที่"
     )
+    message = build_crowd_alert_message(zone_id, config, count, limit)
     ok, detail = send_line_message(message)
     if ok:
         last_line_alert_at[zone_id] = now_ts
+        line_alerts_sent += 1
+        if zone_id in zone_data:
+            zone_data[zone_id]["last_line_alert"] = {
+                "sent_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "count": count,
+                "limit": limit,
+                "detail": detail,
+            }
         logger.info("LINE alert sent: %s count=%s", zone_id, count)
+        return True
     else:
+        if zone_id in zone_data:
+            zone_data[zone_id]["last_line_alert_error"] = detail
         logger.warning("LINE alert failed: %s", detail)
+        return False
 
 
 def get_density(count, limit):
@@ -343,12 +370,20 @@ def process_camera(zone_id, config):
 
             frame_count += 1
             if frame_count % 5 == 0:
+                latest_config = get_cameras().get(zone_id, config)
                 small = cv2.resize(frame, (640, 480))
                 results = detector(small, classes=[0], conf=0.4, verbose=False)
                 count = len(results[0].boxes)
                 annotated = results[0].plot(labels=False, conf=False)
                 _, jpeg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 70])
-                apply_count_update(zone_id, count, config.get("name"), config.get("limit"), True, jpeg.tobytes())
+                apply_count_update(
+                    zone_id,
+                    count,
+                    latest_config.get("name", config.get("name")),
+                    latest_config.get("limit", config.get("limit")),
+                    True,
+                    jpeg.tobytes(),
+                )
         except Exception as exc:
             logger.exception("Camera worker error for %s: %s", zone_id, exc)
             zone_data[zone_id] = {
@@ -608,6 +643,12 @@ async def line_status_api():
         "has_target": bool(target_id),
         "target_id": target_id,
         "cooldown_seconds": LINE_ALERT_COOLDOWN_SECONDS,
+        "alerts_sent": line_alerts_sent,
+        "last_alert_by_camera": {
+            zone_id: data.get("last_line_alert")
+            for zone_id, data in zone_data.items()
+            if data.get("last_line_alert")
+        },
     }
 
 
