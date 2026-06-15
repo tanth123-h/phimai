@@ -1,4 +1,4 @@
-﻿/* ================================================================
+/* ================================================================
    PHIMAI SMARTFLOW AI — JavaScript เจ้าหน้าที่ (เวอร์ชันเสถียรสูงสุด)
 ================================================================ */
 
@@ -17,8 +17,8 @@ const ZONES = [
 ];
 
 const CAMERA_ZONES = [
-  { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: 30 },
-  { id: 'south-gopura', name: 'โคปุระทิศใต้', camId: 'CAM-02', limit: 30 },
+  { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: 20 },
+  { id: 'south-gopura', name: 'โคปุระทิศใต้', camId: 'CAM-02', limit: 20 },
 ];
 
 let latestCameraData = {};

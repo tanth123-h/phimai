@@ -16,6 +16,12 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 import cv2
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,14 +60,14 @@ DEFAULT_CAMERAS = [
         "id": "main-prang",
         "name": "ปรางค์ประธาน",
         "url": os.getenv("CAMERA_MAIN_PRANG_RTSP_URL", ""),
-        "limit": DEFAULT_CAMERA_LIMIT,
+        "limit": 20,
         "enabled": True,
     },
     {
         "id": "south-gopura",
         "name": "โคปุระทิศใต้",
         "url": os.getenv("CAMERA_SOUTH_GOPURA_RTSP_URL", ""),
-        "limit": DEFAULT_CAMERA_LIMIT,
+        "limit": 20,
         "enabled": True,
     },
 ]

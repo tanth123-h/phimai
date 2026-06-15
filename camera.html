@@ -47,6 +47,7 @@
     .camera-badges { display: flex; gap: 8px; align-items: center; }
 
     .badge-live { background: #1a3a1a; color: #4caf50; font-size: 11px; padding: 3px 8px; border-radius: 20px; border: 1px solid #2d5a2d; }
+    .badge-offline { background: #242424; color: #777; border-color: #3a3a3a; }
     .badge-count { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
     .badge-ok   { background: #1a3a1a; color: #4caf50; border: 1px solid #2d5a2d; }
     .badge-warn { background: #3a2e1a; color: #f39c12; border: 1px solid #5a4a2d; }
@@ -116,7 +117,7 @@ function buildCards() {
       <div class="camera-header">
         <div class="camera-name">📷 ${cam.name}</div>
         <div class="camera-badges">
-          <div class="badge-live">● LIVE</div>
+          <div class="badge-live" id="live-${cam.id}">● LIVE</div>
           <div class="badge-count badge-ok" id="badge-${cam.id}">— คน</div>
         </div>
       </div>
@@ -172,6 +173,48 @@ function updateCards(data) {
     if (status)   status.textContent   = statusText;
     if (timeEl)   timeEl.textContent   = info.timestamp || '—';
     if (card)     card.classList.toggle('over-limit', count >= limit);
+  }
+}
+
+function updateCards(data) {
+  for (const [zoneId, info] of Object.entries(data)) {
+    const camConfig = CAMERAS.find(cam => cam.id === zoneId) || {};
+    const limit = Number(info.limit || camConfig.limit || 30);
+    const count = Number(info.count || 0);
+    const isOnline = Boolean(info.online);
+    const pct = Math.min((count / limit) * 100, 100);
+    const color = count >= limit ? '#e74c3c' : count >= limit * 0.7 ? '#f39c12' : '#4caf50';
+    const badgeCls = count >= limit ? 'badge-over' : count >= limit * 0.7 ? 'badge-warn' : 'badge-ok';
+    const statusText = !isOnline ? 'ออฟไลน์ / รอสัญญาณ' : count >= limit ? 'เกินขีดจำกัด!' : count >= limit * 0.7 ? 'เฝ้าระวัง' : 'ปกติ';
+
+    const badge = document.getElementById(`badge-${zoneId}`);
+    const live = document.getElementById(`live-${zoneId}`);
+    const bar = document.getElementById(`bar-${zoneId}`);
+    const barLabel = document.getElementById(`bar-label-${zoneId}`);
+    const status = document.getElementById(`status-${zoneId}`);
+    const timeEl = document.getElementById(`time-${zoneId}`);
+    const card = document.getElementById(`card-${zoneId}`);
+    const img = document.getElementById(`stream-${zoneId}`);
+    const offline = document.getElementById(`offline-${zoneId}`);
+
+    if (badge) {
+      badge.textContent = `${count} คน`;
+      badge.className = `badge-count ${badgeCls}`;
+    }
+    if (live) {
+      live.textContent = isOnline ? '● LIVE' : '● OFFLINE';
+      live.className = `badge-live ${isOnline ? '' : 'badge-offline'}`;
+    }
+    if (bar) {
+      bar.style.width = `${pct}%`;
+      bar.style.background = color;
+    }
+    if (barLabel) barLabel.textContent = `${count} / ${limit} คน`;
+    if (status) status.textContent = statusText;
+    if (timeEl) timeEl.textContent = info.timestamp || '—';
+    if (card) card.classList.toggle('over-limit', count >= limit);
+    if (img) img.style.display = isOnline ? 'block' : 'none';
+    if (offline) offline.style.display = isOnline ? 'none' : 'flex';
   }
 }
 
