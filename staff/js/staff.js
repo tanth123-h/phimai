@@ -5,7 +5,7 @@
 const STAFF_PIN = '1234';
 const API_URL = window.SMARTFLOW_API_URL || window.location.origin;
 const WS_URL  = window.SMARTFLOW_WS_URL || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
-const CAM_LIMIT = 30;
+const CAM_LIMIT = 15;
 
 const ZONES = [
   { id: 'main-prang',    name: 'ปรางค์ประธาน',  capacity: 60, current: 0, svgX: 300, svgY: 185, camId: 'CAM-01' },
@@ -17,11 +17,12 @@ const ZONES = [
 ];
 
 const CAMERA_ZONES = [
-  { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: 20 },
-  { id: 'south-gopura', name: 'โคปุระทิศใต้', camId: 'CAM-02', limit: 20 },
+  { id: 'main-prang', name: 'ปรางค์ประธาน', camId: 'CAM-01', limit: CAM_LIMIT },
+  { id: 'south-gopura', name: 'โคปุระทิศใต้', camId: 'CAM-02', limit: CAM_LIMIT },
 ];
 
 let latestCameraData = {};
+let latestCameraAnalytics = {};
 let activeCameraId = null;
 let activeChartScale = 'hour'; 
 let chartHistoryOffset = 0;
@@ -57,6 +58,7 @@ function initDashboard() {
   initCameraControls();   
   loadCameraSettings();
   renderCameraMonitor(); 
+  renderCameraStatsChart();
   connectCameraWS();      
   setupStaticFeatures();
 }
@@ -88,6 +90,7 @@ function connectCameraWS() {
     try {
       const payload = JSON.parse(event.data);
       latestCameraData = payload.cameras || {};
+      latestCameraAnalytics = payload.camera_analytics || {};
       window.advancedAnalytics = payload.analytics || {};
       
       for (const [zoneId, info] of Object.entries(latestCameraData)) {
@@ -98,6 +101,7 @@ function connectCameraWS() {
       renderMap();
       renderStats();
       updateCameraMonitor();
+      renderCameraStatsChart();
       if (chartHistoryOffset === 0) {
         chartHistoryData = null;
         renderBarChart();
@@ -494,6 +498,62 @@ function renderCameraMonitor() {
     </div>`).join('');
 }
 
+function renderCameraStatsChart() {
+  const section = document.querySelector('.camera-monitor-section');
+  if (!section) return;
+
+  let wrap = document.getElementById('cameraStatsSection');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'cameraStatsSection';
+    wrap.className = 'camera-stats-section';
+    section.appendChild(wrap);
+  }
+
+  const rows = CAMERA_ZONES.map(cam => {
+    const live = latestCameraData[cam.id] || {};
+    const analytics = latestCameraAnalytics[cam.id] || {};
+    const labels = Array.isArray(analytics.labels) && analytics.labels.length ? analytics.labels : ['ตอนนี้'];
+    const values = Array.isArray(analytics.values) && analytics.values.length ? analytics.values : [Number(live.count || 0)];
+    const limit = Number(live.limit || analytics.limit || cam.limit || CAM_LIMIT);
+    const peak = Math.max(...values, Number(live.count || 0), limit, 1);
+    const current = Number(live.count || analytics.current || 0);
+    const isOver = current > limit;
+
+    const bars = values.map((value, idx) => {
+      const val = Number(value || 0);
+      const height = Math.max(6, Math.round((val / peak) * 100));
+      const state = val > limit ? 'high' : val >= limit * 0.7 ? 'medium' : 'low';
+      return `
+        <div class="camera-stats-bar ${state}" title="${labels[idx] || ''}: ${val} คน">
+          <span style="height:${height}%"></span>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="camera-stats-card ${isOver ? 'high' : ''}">
+        <div class="camera-stats-head">
+          <div>
+            <strong>${analytics.name || live.name || cam.name}</strong>
+            <small>${cam.camId} · ขีดจำกัด ${limit} คน</small>
+          </div>
+          <div class="camera-stats-current ${isOver ? 'high' : ''}">${current}<span>คน</span></div>
+        </div>
+        <div class="camera-stats-bars">${bars}</div>
+        <div class="camera-stats-foot">
+          <span>${labels[0] || ''}</span>
+          <span>สูงสุด ${Math.max(...values, 0)} คน</span>
+          <span>${labels[labels.length - 1] || ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="camera-stats-title">สถิติแยกตามกล้องวันนี้</div>
+    <div class="camera-stats-grid">${rows}</div>
+  `;
+}
+
 async function loadCameraSettings() {
   try {
     const res = await fetch(`${API_URL}/api/cameras`);
@@ -509,6 +569,7 @@ async function loadCameraSettings() {
         hasRtspUrl: cam.has_rtsp_url
       })));
       renderCameraMonitor();
+      renderCameraStatsChart();
       renderCameraSettings();
       updateCameraSettingsList();
     }
@@ -528,7 +589,7 @@ function renderCameraSettings() {
       <div class="camera-settings-grid">
         <input class="camera-settings-input" id="cameraSettingId" placeholder="camera id" value="main-prang" />
         <input class="camera-settings-input" id="cameraSettingName" placeholder="ชื่อกล้อง" value="ปรางค์ประธาน" />
-        <input class="camera-settings-input" id="cameraSettingLimit" placeholder="limit" type="number" value="30" min="1" />
+        <input class="camera-settings-input" id="cameraSettingLimit" placeholder="limit" type="number" value="15" min="1" />
         <input class="camera-settings-input" id="cameraSettingRtsp" placeholder="RTSP URL (บันทึกในฐานข้อมูล)" type="password" />
         <button class="camera-card-btn" id="saveCameraSettingsBtn" type="button">บันทึก</button>
       </div>
@@ -601,13 +662,18 @@ function updateCameraMonitor() {
     
     if (data && card && status && count) {
       const isOnline = data.online;
-      card.className = `camera-monitor-card ${!isOnline ? 'offline' : data.count >= cam.limit ? 'high' : 'low'}`;
-      status.className = `camera-status-pill ${!isOnline ? 'offline' : data.count >= cam.limit ? 'high' : 'low'}`;
-      status.textContent = !isOnline ? 'ออฟไลน์' : data.count >= cam.limit ? 'หนาแน่น' : 'ปกติ';
+      const limit = Number(data.limit || cam.limit || CAM_LIMIT);
+      const isHigh = Number(data.count || 0) > limit;
+      const isMedium = Number(data.count || 0) >= limit * 0.7;
+      const statusClass = !isOnline ? 'offline' : isHigh ? 'high' : isMedium ? 'medium' : 'low';
+      card.className = `camera-monitor-card ${statusClass}`;
+      status.className = `camera-status-pill ${statusClass}`;
+      status.textContent = !isOnline ? 'ออฟไลน์' : isHigh ? 'หนาแน่น' : isMedium ? 'เฝ้าระวัง' : 'ปกติ';
       count.innerHTML = `${data.count}<small>คน</small>`;
     }
   });
   if (activeCameraId) updateCameraViewer(activeCameraId);
+  renderCameraStatsChart();
 }
 
 function initCameraControls() {
@@ -654,13 +720,14 @@ function updateCameraViewer(zoneId) {
   if (limitEl) limitEl.textContent = `ขีดจำกัด ${data.limit} คน`;
   if (timeEl) timeEl.textContent = `อัปเดตล่าสุด ${data.timestamp || '—'}`;
   if (statusEl) {
-    statusEl.textContent = data.density === 'high' ? '🔴 วิกฤต / หนาแน่น' : '🟢 ปกติ';
-    statusEl.style.color = data.density === 'high' ? '#EF4444' : '#22C55E';
+    const isHigh = Number(data.count || 0) > Number(data.limit || CAM_LIMIT);
+    statusEl.textContent = isHigh ? '🔴 วิกฤต / หนาแน่น' : '🟢 ปกติ';
+    statusEl.style.color = isHigh ? '#EF4444' : '#22C55E';
   }
   if (meterEl) {
     const pct = Math.min(100, (data.count / data.limit) * 100);
     meterEl.style.width = `${pct}%`;
-    meterEl.style.backgroundColor = pct >= 100 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22C55E';
+    meterEl.style.backgroundColor = Number(data.count || 0) > Number(data.limit || CAM_LIMIT) ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22C55E';
   }
 }
 

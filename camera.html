@@ -102,7 +102,7 @@ async function loadCameras() {
       CAMERAS = data.cameras.map(cam => ({
         id: cam.id,
         name: cam.name,
-        limit: cam.limit || 30,
+        limit: cam.limit || 15,
       }));
     }
   } catch(e) {
@@ -153,12 +153,12 @@ function buildCards() {
 function updateCards(data) {
   for (const [zoneId, info] of Object.entries(data)) {
     const camConfig = CAMERAS.find(cam => cam.id === zoneId) || {};
-    const limit      = Number(info.limit || camConfig.limit || 30);
+    const limit      = Number(info.limit || camConfig.limit || 15);
     const count      = info.count;
     const pct        = Math.min((count / limit) * 100, 100);
-    const color      = count >= limit ? '#e74c3c' : count >= limit*0.7 ? '#f39c12' : '#4caf50';
-    const badgeCls   = count >= limit ? 'badge-over' : count >= limit*0.7 ? 'badge-warn' : 'badge-ok';
-    const statusText = count >= limit ? '🔴 เกินขีดจำกัด!' : count >= limit*0.7 ? '🟡 เฝ้าระวัง' : '🟢 ปกติ';
+    const color      = count > limit ? '#e74c3c' : count >= limit*0.7 ? '#f39c12' : '#4caf50';
+    const badgeCls   = count > limit ? 'badge-over' : count >= limit*0.7 ? 'badge-warn' : 'badge-ok';
+    const statusText = count > limit ? '🔴 เกินขีดจำกัด!' : count >= limit*0.7 ? '🟡 เฝ้าระวัง' : '🟢 ปกติ';
 
     const badge    = document.getElementById(`badge-${zoneId}`);
     const bar      = document.getElementById(`bar-${zoneId}`);
@@ -172,20 +172,20 @@ function updateCards(data) {
     if (barLabel) barLabel.textContent = `${count} / ${limit} คน`;
     if (status)   status.textContent   = statusText;
     if (timeEl)   timeEl.textContent   = info.timestamp || '—';
-    if (card)     card.classList.toggle('over-limit', count >= limit);
+    if (card)     card.classList.toggle('over-limit', count > limit);
   }
 }
 
 function updateCards(data) {
   for (const [zoneId, info] of Object.entries(data)) {
     const camConfig = CAMERAS.find(cam => cam.id === zoneId) || {};
-    const limit = Number(info.limit || camConfig.limit || 30);
+    const limit = Number(info.limit || camConfig.limit || 15);
     const count = Number(info.count || 0);
     const isOnline = Boolean(info.online);
     const pct = Math.min((count / limit) * 100, 100);
-    const color = count >= limit ? '#e74c3c' : count >= limit * 0.7 ? '#f39c12' : '#4caf50';
-    const badgeCls = count >= limit ? 'badge-over' : count >= limit * 0.7 ? 'badge-warn' : 'badge-ok';
-    const statusText = !isOnline ? 'ออฟไลน์ / รอสัญญาณ' : count >= limit ? 'เกินขีดจำกัด!' : count >= limit * 0.7 ? 'เฝ้าระวัง' : 'ปกติ';
+    const color = count > limit ? '#e74c3c' : count >= limit * 0.7 ? '#f39c12' : '#4caf50';
+    const badgeCls = count > limit ? 'badge-over' : count >= limit * 0.7 ? 'badge-warn' : 'badge-ok';
+    const statusText = !isOnline ? 'ออฟไลน์ / รอสัญญาณ' : count > limit ? 'เกินขีดจำกัด!' : count >= limit * 0.7 ? 'เฝ้าระวัง' : 'ปกติ';
 
     const badge = document.getElementById(`badge-${zoneId}`);
     const live = document.getElementById(`live-${zoneId}`);
@@ -212,7 +212,7 @@ function updateCards(data) {
     if (barLabel) barLabel.textContent = `${count} / ${limit} คน`;
     if (status) status.textContent = statusText;
     if (timeEl) timeEl.textContent = info.timestamp || '—';
-    if (card) card.classList.toggle('over-limit', count >= limit);
+    if (card) card.classList.toggle('over-limit', count > limit);
     if (img) img.style.display = isOnline ? 'block' : 'none';
     if (offline) offline.style.display = isOnline ? 'none' : 'flex';
   }

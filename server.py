@@ -15,6 +15,7 @@ import time
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
+import atexit
 
 try:
     from dotenv import load_dotenv
@@ -23,6 +24,11 @@ except ImportError:
     pass
 
 import cv2
+from vpn_manager import VPNManager
+
+# เริ่มต้นระบบจัดการ VPN อัตโนมัติ
+vpn_manager = VPNManager()
+atexit.register(vpn_manager.stop_monitoring)
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -40,7 +46,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-DEFAULT_CAMERA_LIMIT = int(os.getenv("DEFAULT_CAMERA_LIMIT", "30"))
+DEFAULT_CAMERA_LIMIT = int(os.getenv("DEFAULT_CAMERA_LIMIT", "15"))
 ENABLE_CAMERA_WORKER = os.getenv("ENABLE_CAMERA_WORKER", "true").lower() in {"1", "true", "yes", "on"}
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_TARGET_ID = os.getenv("LINE_TARGET_ID")
@@ -60,14 +66,14 @@ DEFAULT_CAMERAS = [
         "id": "main-prang",
         "name": "ปรางค์ประธาน",
         "url": os.getenv("CAMERA_MAIN_PRANG_RTSP_URL", ""),
-        "limit": 20,
+        "limit": DEFAULT_CAMERA_LIMIT,
         "enabled": True,
     },
     {
         "id": "south-gopura",
         "name": "โคปุระทิศใต้",
         "url": os.getenv("CAMERA_SOUTH_GOPURA_RTSP_URL", ""),
-        "limit": 20,
+        "limit": DEFAULT_CAMERA_LIMIT,
         "enabled": True,
     },
 ]
@@ -261,6 +267,14 @@ def send_line_message(message):
 def build_crowd_alert_message(zone_id, config, count, limit):
     zone_name = config.get("name", zone_id)
     return (
+        "SmartFlow AI crowd alert\n"
+        f"Camera/Zone: {zone_name}\n"
+        f"People now: {count}\n"
+        f"Alert limit: more than {limit}\n"
+        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "Please check this area."
+    )
+    return (
         "แจ้งเตือนความหนาแน่นผู้เยี่ยมชม\n"
         f"กล้อง/จุดตรวจ: {zone_name}\n"
         f"จำนวนคนปัจจุบัน: {count} คน\n"
@@ -273,7 +287,7 @@ def build_crowd_alert_message(zone_id, config, count, limit):
 def maybe_send_crowd_alert(zone_id, config, count):
     global line_alerts_sent
     limit = int(config.get("limit", DEFAULT_CAMERA_LIMIT))
-    if count < limit:
+    if count <= limit:
         return False
 
     now_ts = time.time()
@@ -310,7 +324,7 @@ def maybe_send_crowd_alert(zone_id, config, count):
 
 
 def get_density(count, limit):
-    if count >= limit:
+    if count > limit:
         return "high"
     if count >= limit * 0.7:
         return "medium"
@@ -353,6 +367,12 @@ def process_camera(zone_id, config):
     cap, frame_count = None, 0
     while True:
         try:
+            # รอการเชื่อมต่อ VPN ให้เรียบร้อยก่อนเปิดหรือดึงภาพกล้อง (เฉพาะเมื่อใช้ VPN และเป้าหมายปลายทางตรงกับเช็กไอพี)
+            if vpn_manager.vpn_type != "none" and vpn_manager.check_ip and vpn_manager.check_ip in config.get("url", ""):
+                if not vpn_manager.connection_event.is_set():
+                    logger.info("Waiting for VPN connection for camera %s...", zone_id)
+                    vpn_manager.connection_event.wait()
+
             if cap is None or not cap.isOpened():
                 logger.info("Opening camera %s", zone_id)
                 cap = cv2.VideoCapture(config["url"], cv2.CAP_FFMPEG)
@@ -492,6 +512,44 @@ def get_advanced_analytics():
     }
 
 
+def get_camera_analytics():
+    now = datetime.now()
+    logs = read_visitor_logs()
+    labels = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]
+    cameras = get_cameras()
+    values_by_camera = {camera_id: {label: 0 for label in labels} for camera_id in cameras}
+
+    for item in logs:
+        zone_id = item["zone_id"]
+        if zone_id not in values_by_camera or item["time"].date() != now.date():
+            continue
+        label = item["time"].strftime("%H:00")
+        if label in values_by_camera[zone_id]:
+            values_by_camera[zone_id][label] = max(values_by_camera[zone_id][label], int(item["count"]))
+
+    current_label = now.strftime("%H:00")
+    for zone_id, data in zone_data.items():
+        if zone_id in values_by_camera and current_label in values_by_camera[zone_id]:
+            values_by_camera[zone_id][current_label] = max(
+                values_by_camera[zone_id][current_label],
+                int(data.get("count", 0) or 0),
+            )
+
+    analytics = {}
+    for camera_id, camera in cameras.items():
+        value_list = [values_by_camera[camera_id][label] for label in labels]
+        analytics[camera_id] = {
+            "name": camera["name"],
+            "limit": camera["limit"],
+            "labels": labels,
+            "values": value_list,
+            "current": int(zone_data.get(camera_id, {}).get("count", 0) or 0),
+            "peak": max(value_list) if value_list else 0,
+            "total": sum(value_list),
+        }
+    return analytics
+
+
 def get_history_analytics(scale="hour", offset=0):
     now = datetime.now()
     offset = max(0, int(offset or 0))
@@ -617,7 +675,11 @@ async def get_counts_api():
                 "timestamp": None,
             },
         )
-    return {"cameras": zone_data, "analytics": get_advanced_analytics()}
+    return {
+        "cameras": zone_data,
+        "analytics": get_advanced_analytics(),
+        "camera_analytics": get_camera_analytics(),
+    }
 
 
 @app.get("/api/analytics/history")
@@ -673,6 +735,9 @@ async def line_test_api():
 
 @app.on_event("startup")
 async def startup():
+    # เริ่มระบบตรวจสอบและเชื่อมต่อ VPN เบื้องหลัง
+    vpn_manager.start_monitoring()
+
     if ENABLE_CAMERA_WORKER:
         for zone_id, config in get_cameras().items():
             zone_data.setdefault(
@@ -693,12 +758,25 @@ async def startup():
         logger.info("Camera workers disabled by ENABLE_CAMERA_WORKER=false")
 
 
+@app.on_event("shutdown")
+async def shutdown():
+    # ปิดระบบตรวจสอบและตัดการเชื่อมต่อ VPN เมื่อเซิร์ฟเวอร์หยุดทำงาน
+    vpn_manager.stop_monitoring()
+    logger.info("SmartFlow AI local backend shutdown complete")
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     try:
         while True:
-            await ws.send_json({"cameras": zone_data, "analytics": get_advanced_analytics()})
+            await ws.send_json(
+                {
+                    "cameras": zone_data,
+                    "analytics": get_advanced_analytics(),
+                    "camera_analytics": get_camera_analytics(),
+                }
+            )
             await asyncio.sleep(1)
     except Exception:
         pass
