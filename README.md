@@ -151,7 +151,49 @@ set LINE_ALERT_COOLDOWN_SECONDS=300
 visitor_history_log.csv
 ```
 
-เมื่อกล้องส่งจำนวนคนใหม่ ระบบจะบันทึกจำนวนลง CSV แล้ว dashboard จะใช้ข้อมูลนี้ทำกราฟ:
+## Supabase PostgreSQL
+
+For a more professional visitor history store, set `DATABASE_URL` to your Supabase PostgreSQL connection string.
+When `DATABASE_URL` is set, the backend writes visitor counts to PostgreSQL and still keeps `visitor_history_log.csv`
+as a local backup.
+
+The backend automatically creates this table on startup:
+
+```sql
+CREATE TABLE IF NOT EXISTS visitor_counts (
+  id BIGSERIAL PRIMARY KEY,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  zone_id TEXT NOT NULL,
+  zone_name TEXT,
+  people_count INTEGER NOT NULL,
+  limit_count INTEGER,
+  density TEXT,
+  online BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+Set the database URL in `.env`:
+
+```env
+DATABASE_URL=postgresql://postgres.your-project-ref:your-password@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+```
+
+Migrate old CSV history into Supabase:
+
+```powershell
+python scripts/migrate_visitor_csv_to_postgres.py
+```
+
+Check the active storage mode:
+
+```text
+http://localhost:8000/healthz
+```
+
+`database` will show `postgresql` when Supabase is connected, otherwise `csv`.
+
+เมื่อกล้องส่งจำนวนคนใหม่ ระบบจะบันทึกจำนวนลง PostgreSQL ถ้าตั้ง `DATABASE_URL` ไว้ และยังบันทึกลง CSV เป็น backup แล้ว dashboard จะใช้ข้อมูลนี้ทำกราฟ:
 
 - ราย 10 นาที
 - รายชั่วโมง

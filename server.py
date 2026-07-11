@@ -53,6 +53,7 @@ LINE_TARGET_ID = os.getenv("LINE_TARGET_ID")
 LINE_VENDOR_TARGET_ID = os.getenv("LINE_VENDOR_TARGET_ID")
 LINE_ALERT_COOLDOWN_SECONDS = int(os.getenv("LINE_ALERT_COOLDOWN_SECONDS", "300"))
 YOLO_MODEL_PATH = os.getenv("YOLO_MODEL_PATH", str(BASE_DIR / "yolov8m.pt"))
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 CAMERA_CONFIG_FILE = DATA_DIR / "camera_config.json"
 LOG_FILE_PATH = DATA_DIR / "visitor_history_log.csv"
@@ -95,6 +96,7 @@ camera_threads = {}
 model = None
 line_alerts_sent = 0
 vendor_line_alerts_sent = 0
+db_ready = False
 
 
 def load_camera_config():
@@ -174,10 +176,132 @@ def upsert_camera(camera):
     return item
 
 
+def normalize_database_url(url):
+    if url.startswith("postgres://"):
+        return "postgresql://" + url[len("postgres://"):]
+    return url
+
+
+def get_db_connection():
+    if not DATABASE_URL:
+        return None
+    try:
+        import psycopg
+    except ImportError:
+        logger.warning("DATABASE_URL is set but psycopg is not installed")
+        return None
+    return psycopg.connect(normalize_database_url(DATABASE_URL))
+
+
+def init_database():
+    global db_ready
+    db_ready = False
+    if not DATABASE_URL:
+        logger.info("DATABASE_URL not set; visitor history will use CSV only")
+        return
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS visitor_counts (
+                        id BIGSERIAL PRIMARY KEY,
+                        recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        zone_id TEXT NOT NULL,
+                        zone_name TEXT,
+                        people_count INTEGER NOT NULL,
+                        limit_count INTEGER,
+                        density TEXT,
+                        online BOOLEAN DEFAULT TRUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
+                )
+                cur.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_visitor_counts_recorded_at ON visitor_counts (recorded_at DESC)"
+                )
+                cur.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_visitor_counts_zone_time ON visitor_counts (zone_id, recorded_at DESC)"
+                )
+            conn.commit()
+        db_ready = True
+        logger.info("PostgreSQL visitor history ready")
+    except Exception as exc:
+        logger.exception("Cannot initialize PostgreSQL visitor history; falling back to CSV: %s", exc)
+
+
+def save_visitor_log_to_db(zone_id, current_count):
+    if not db_ready:
+        return
+    camera = get_cameras().get(zone_id, {})
+    limit = int(camera.get("limit", DEFAULT_CAMERA_LIMIT))
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO visitor_counts
+                        (recorded_at, zone_id, zone_name, people_count, limit_count, density, online)
+                    VALUES
+                        (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        datetime.now(),
+                        zone_id,
+                        camera.get("name", zone_id),
+                        int(current_count),
+                        limit,
+                        get_density(int(current_count), limit),
+                        True,
+                    ),
+                )
+            conn.commit()
+    except Exception as exc:
+        logger.exception("Cannot write visitor log to PostgreSQL: %s", exc)
+
+
+def read_visitor_logs_from_db():
+    if not db_ready:
+        return None
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return None
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT recorded_at, zone_id, people_count
+                    FROM visitor_counts
+                    ORDER BY recorded_at ASC
+                    """
+                )
+                rows = cur.fetchall()
+        return [
+            {
+                "time": row[0].replace(tzinfo=None) if getattr(row[0], "tzinfo", None) else row[0],
+                "zone_id": row[1],
+                "count": int(row[2]),
+            }
+            for row in rows
+        ]
+    except Exception as exc:
+        logger.exception("Cannot read visitor logs from PostgreSQL; falling back to CSV: %s", exc)
+        return None
+
+
 def save_visitor_log(zone_id, current_count):
     if last_logged_count.get(zone_id) == current_count:
         return
     last_logged_count[zone_id] = current_count
+
+    save_visitor_log_to_db(zone_id, current_count)
 
     file_exists = LOG_FILE_PATH.exists()
     try:
@@ -191,6 +315,10 @@ def save_visitor_log(zone_id, current_count):
 
 
 def read_visitor_logs():
+    db_logs = read_visitor_logs_from_db()
+    if db_logs is not None:
+        return db_logs
+
     logs = []
     if not LOG_FILE_PATH.exists():
         return logs
@@ -698,7 +826,12 @@ def get_history_analytics(scale="hour", offset=0):
 
 @app.get("/healthz")
 async def healthz():
-    return {"ok": True, "mode": "local-ngrok", "camera_worker": ENABLE_CAMERA_WORKER}
+    return {
+        "ok": True,
+        "mode": "local-ngrok",
+        "camera_worker": ENABLE_CAMERA_WORKER,
+        "database": "postgresql" if db_ready else "csv",
+    }
 
 
 @app.get("/api/cameras")
@@ -839,6 +972,8 @@ async def line_vendor_test_api():
 
 @app.on_event("startup")
 async def startup():
+    init_database()
+
     # เริ่มระบบตรวจสอบและเชื่อมต่อ VPN เบื้องหลัง
     vpn_manager.start_monitoring()
 
