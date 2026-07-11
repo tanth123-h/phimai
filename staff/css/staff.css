@@ -1168,6 +1168,105 @@ body {
   padding: 14px 16px;
 }
 
+#hourlyForecastBox {
+  background-color: rgba(59, 130, 246, 0.07);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: 10px;
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.forecast-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.forecast-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.forecast-sub {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.forecast-sub b,
+.forecast-note b {
+  color: #93c5fd;
+}
+
+.forecast-badge {
+  background-color: rgba(147, 197, 253, 0.08);
+  border: 1px solid rgba(147, 197, 253, 0.25);
+  border-radius: 6px;
+  color: #93c5fd;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+.forecast-bars {
+  display: grid;
+  gap: 7px;
+}
+
+.forecast-row {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 48px minmax(0, 1fr) 64px;
+}
+
+.forecast-time,
+.forecast-value {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.forecast-value {
+  text-align: right;
+}
+
+.forecast-track {
+  background-color: rgba(255,255,255,0.07);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.forecast-track span {
+  background-color: #3b82f6;
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  transition: width 0.35s ease;
+}
+
+.forecast-row.peak .forecast-time,
+.forecast-row.peak .forecast-value {
+  color: #fef3c7;
+  font-weight: 700;
+}
+
+.forecast-row.peak .forecast-track span {
+  background-color: var(--yellow);
+}
+
+.forecast-note {
+  color: #dbeafe;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
 .chart-empty {
   color: var(--text-muted);
   padding: 80px 16px;

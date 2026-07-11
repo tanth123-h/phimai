@@ -213,6 +213,57 @@ function renderBarChart() {
   } else if (window.advancedAnalytics && window.advancedAnalytics.summary_text) {
     summaryBox.innerHTML = window.advancedAnalytics.summary_text;
   }
+
+  renderHourlyForecastBox();
+}
+
+function renderHourlyForecastBox() {
+  const container = document.getElementById('barChart');
+  if (!container) return;
+
+  let box = document.getElementById('hourlyForecastBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'hourlyForecastBox';
+    container.parentNode.appendChild(box);
+  }
+
+  if (activeChartScale !== 'hour' || chartHistoryData) {
+    box.style.display = 'none';
+    return;
+  }
+
+  const forecast = window.advancedAnalytics?.forecast;
+  if (!forecast || !Array.isArray(forecast.labels) || !Array.isArray(forecast.values)) {
+    box.style.display = 'none';
+    return;
+  }
+
+  const maxVal = Math.max(...forecast.values, 1);
+  const bars = forecast.labels.map((label, idx) => {
+    const value = Number(forecast.values[idx] || 0);
+    const width = Math.max(4, Math.round((value / maxVal) * 100));
+    const peakClass = label === forecast.peak_hour ? 'peak' : '';
+    return `
+      <div class="forecast-row ${peakClass}">
+        <div class="forecast-time">${label}</div>
+        <div class="forecast-track"><span style="width:${width}%"></span></div>
+        <div class="forecast-value">${value} คน</div>
+      </div>`;
+  }).join('');
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="forecast-head">
+      <div>
+        <div class="forecast-title">คาดการณ์ล่วงหน้ารายชั่วโมงใน 1 วัน</div>
+        <div class="forecast-sub">ชั่วโมงที่คาดว่าคนมาเยอะสุด: <b>${forecast.peak_hour} น.</b> ประมาณ <b>${forecast.peak_value} คน</b></div>
+      </div>
+      <div class="forecast-badge">${forecast.observed_days || 0} วันย้อนหลัง</div>
+    </div>
+    <div class="forecast-bars">${bars}</div>
+    <div class="forecast-note">${forecast.summary_text || ''}</div>
+  `;
 }
 
 window.setChartScale = function(scale) {

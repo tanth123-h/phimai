@@ -441,6 +441,50 @@ async def generate_stream(zone_id):
             await asyncio.sleep(0.5)
 
 
+def get_hourly_forecast(logs, hour_labels, current_hour_values):
+    hourly_zone_max = {}
+    for item in logs:
+        label = item["time"].strftime("%H:00")
+        if label not in hour_labels:
+            continue
+        key = (item["time"].date(), label)
+        zone_id = item["zone_id"]
+        hourly_zone_max.setdefault(key, {})
+        hourly_zone_max[key][zone_id] = max(hourly_zone_max[key].get(zone_id, 0), int(item["count"]))
+
+    samples_by_hour = {label: [] for label in hour_labels}
+    for (_date, label), zone_counts in hourly_zone_max.items():
+        samples_by_hour[label].append(sum(zone_counts.values()))
+
+    values = []
+    for label in hour_labels:
+        samples = samples_by_hour[label]
+        if samples:
+            values.append(round(sum(samples) / len(samples)))
+        else:
+            values.append(int(current_hour_values.get(label, 0) or 0))
+
+    max_value = max(values) if values else 0
+    peak_index = values.index(max_value) if values and max_value > 0 else 0
+    peak_label = hour_labels[peak_index] if hour_labels else "-"
+    observed_days = len({item["time"].date() for item in logs})
+    sample_count = sum(len(samples) for samples in samples_by_hour.values())
+
+    return {
+        "labels": hour_labels,
+        "values": values,
+        "peak_hour": peak_label,
+        "peak_value": max_value,
+        "observed_days": observed_days,
+        "sample_count": sample_count,
+        "summary_text": (
+            f"<b>คาดการณ์รายชั่วโมงใน 1 วัน:</b> "
+            f"จากข้อมูลย้อนหลัง {observed_days} วัน คาดว่าช่วง <b>{peak_label} น.</b> "
+            f"จะมีคนมากที่สุดประมาณ <b>{max_value} คน</b>"
+        ),
+    }
+
+
 def get_advanced_analytics():
     now = datetime.now()
     logs = read_visitor_logs()
@@ -496,11 +540,14 @@ def get_advanced_analytics():
     positive_hours = [h for h in hour_values.items() if h[1] > 0]
     low_h = min(positive_hours, key=lambda x: x[1]) if positive_hours else ("09:00", 0)
     peak_d = max(day_values.items(), key=lambda x: x[1])
+    hourly_forecast = get_hourly_forecast(logs, hour_labels, hour_values)
     summary_text = (
-        f"<b>วิเคราะห์ความหนาแน่นผู้เยี่ยมชม (AI Traffic Analysis):</b><br/>"
-        f"ช่วงเวลาคนเยอะที่สุดวันนี้ประมาณ <b>{peak_h[0]} น. ({peak_h[1]} คน)</b> "
-        f"และรายสัปดาห์สูงสุดวันที่ <b>{peak_d[0]} ({peak_d[1]} คน)</b><br/>"
-        f"ช่วงเวลาคนน้อยที่สุดวันนี้คือ <b>{low_h[0]} น.</b>"
+        f"<b>วิเคราะห์และคาดการณ์ผู้เยี่ยมชมรายชั่วโมง:</b><br/>"
+        f"ข้อมูลจริงวันนี้สูงสุดที่ <b>{peak_h[0]} น. ({peak_h[1]} คน)</b> "
+        f"และคาดการณ์ทั้งวันว่าคนจะเยอะสุดช่วง <b>{hourly_forecast['peak_hour']} น. "
+        f"({hourly_forecast['peak_value']} คน)</b><br/>"
+        f"ช่วงเวลาคนน้อยที่สุดวันนี้คือ <b>{low_h[0]} น.</b> "
+        f"อ้างอิงข้อมูลย้อนหลัง {hourly_forecast['observed_days']} วัน"
     )
     return {
         "minute": {"labels": minute_labels, "values": [minute_values[m] for m in minute_labels]},
@@ -508,6 +555,7 @@ def get_advanced_analytics():
         "day": {"labels": day_labels, "values": [day_values[d] for d in day_labels]},
         "month": {"labels": month_labels, "values": [month_values[m] for m in month_labels]},
         "year": {"labels": year_labels, "values": [year_values[y] for y in year_labels]},
+        "forecast": hourly_forecast,
         "summary_text": summary_text,
     }
 
