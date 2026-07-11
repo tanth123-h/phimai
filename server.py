@@ -980,6 +980,37 @@ async def line_vendor_test_api():
     return {"ok": True, "detail": detail}
 
 
+@app.post("/api/line/vendors/target")
+async def line_vendor_target_api(payload: dict):
+    target_id = str(payload.get("target_id", "")).strip()
+    if not target_id:
+        raise HTTPException(status_code=400, detail="target_id is required")
+    save_line_target_id(target_id, "manual", "vendor")
+    return {"ok": True, "vendor_target_id": load_line_target_id("vendor")}
+
+
+@app.post("/api/line/vendors/register-latest")
+async def line_vendor_register_latest_api():
+    if not LINE_LAST_WEBHOOK_FILE.exists():
+        raise HTTPException(status_code=400, detail="No webhook payload found yet")
+    try:
+        payload = json.loads(LINE_LAST_WEBHOOK_FILE.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Cannot read latest webhook payload: {exc}")
+
+    for event in payload.get("events", []):
+        source = event.get("source", {})
+        target_id = source.get("groupId") or source.get("roomId")
+        if target_id:
+            save_line_target_id(target_id, source.get("type", "unknown"), "vendor")
+            return {"ok": True, "vendor_target_id": load_line_target_id("vendor")}
+
+    raise HTTPException(
+        status_code=400,
+        detail="Latest webhook was not from a group/room. Send 'vendor' in the merchant group first.",
+    )
+
+
 async def start_services():
     init_database()
 
