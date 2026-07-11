@@ -111,6 +111,15 @@ set LINE_CHANNEL_ACCESS_TOKEN=your-line-token
 set LINE_TARGET_ID=your-group-or-user-id
 ```
 
+กลุ่ม LINE พ่อค้าแม่ค้า:
+
+```bash
+set LINE_VENDOR_TARGET_ID=your-vendor-group-id
+```
+
+ถ้ายังไม่รู้ group id ให้เชิญ LINE bot เข้ากลุ่มพ่อค้าแม่ค้า แล้วส่งข้อความ `vendor` ในกลุ่ม 1 ครั้ง
+ระบบจะบันทึกเป็น `vendor_target_id` ใน `line_alert_config.json` ให้อัตโนมัติ
+
 ถ้าต้องการให้ระบบจำ target id จาก webhook ให้ตั้ง webhook URL ใน LINE Developers เป็น:
 
 ```text
@@ -119,7 +128,7 @@ https://xxxx-xx-xx-xx.ngrok-free.app/api/line/webhook
 
 จากนั้นส่งข้อความหา bot หนึ่งครั้ง ระบบจะบันทึก target ลง `line_alert_config.json`
 
-เมื่อกล้องนับคนได้มากกว่าหรือเท่ากับค่า `limit` ของกล้อง ระบบจะส่ง LINE อัตโนมัติ โดยข้อความจะระบุ:
+เมื่อกล้องนับคนได้มากกว่าค่า `limit` ของกล้อง ระบบจะส่ง LINE อัตโนมัติไปทั้งกลุ่มเจ้าหน้าที่และกลุ่มพ่อค้าแม่ค้า โดยข้อความจะระบุ:
 
 - ชื่อกล้อง/จุดตรวจ
 - จำนวนคนปัจจุบัน

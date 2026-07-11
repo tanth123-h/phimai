@@ -793,6 +793,16 @@ function setupStaticFeatures() {
       alert(`ส่ง LINE ไม่สำเร็จ: ${err.message}\n\nให้เพิ่มบอทเป็นเพื่อนหรือเชิญเข้ากลุ่ม แล้วส่งข้อความหา bot 1 ครั้งก่อน`);
     }
   });
+  document.getElementById('testVendorLineBtn')?.addEventListener('click', async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/line/vendors/test`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'Vendor LINE test failed');
+      alert('ส่งข้อความทดสอบ LINE ร้านค้าสำเร็จ');
+    } catch (err) {
+      alert(`ส่ง LINE ร้านค้าไม่สำเร็จ: ${err.message}\n\nให้เชิญ bot เข้ากลุ่มพ่อค้าแม่ค้า แล้วส่งคำว่า vendor ในกลุ่มก่อน`);
+    }
+  });
   document.getElementById('emergencyBtn')?.addEventListener('click', () => alert('🚨 ระบบยิงแจ้งเตือนเหตุวิกฤตถึงเจ้าหน้าที่ทุกคนแล้ว!'));
   
   const notifList = document.getElementById('notifList');

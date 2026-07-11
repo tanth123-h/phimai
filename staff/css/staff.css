@@ -273,7 +273,7 @@ body {
 
 .topbar-date, .date-text { font-size: 13px; color: var(--text-muted); font-weight: 500; }
 
-.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-right { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
 
 .topbar-btn {
   background-color: var(--bg-input);

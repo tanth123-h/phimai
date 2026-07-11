@@ -50,6 +50,7 @@ DEFAULT_CAMERA_LIMIT = int(os.getenv("DEFAULT_CAMERA_LIMIT", "15"))
 ENABLE_CAMERA_WORKER = os.getenv("ENABLE_CAMERA_WORKER", "true").lower() in {"1", "true", "yes", "on"}
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_TARGET_ID = os.getenv("LINE_TARGET_ID")
+LINE_VENDOR_TARGET_ID = os.getenv("LINE_VENDOR_TARGET_ID")
 LINE_ALERT_COOLDOWN_SECONDS = int(os.getenv("LINE_ALERT_COOLDOWN_SECONDS", "300"))
 YOLO_MODEL_PATH = os.getenv("YOLO_MODEL_PATH", str(BASE_DIR / "yolov8m.pt"))
 
@@ -93,6 +94,7 @@ last_line_alert_at = {}
 camera_threads = {}
 model = None
 line_alerts_sent = 0
+vendor_line_alerts_sent = 0
 
 
 def load_camera_config():
@@ -214,41 +216,48 @@ def read_visitor_logs():
     return logs
 
 
-def load_line_target_id():
+def load_line_config():
+    if not LINE_CONFIG_FILE.exists():
+        return {}
+    try:
+        return json.loads(LINE_CONFIG_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def write_line_config(config):
+    LINE_CONFIG_FILE.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_line_target_id(target_type="staff"):
+    if target_type == "vendor":
+        if LINE_VENDOR_TARGET_ID:
+            return LINE_VENDOR_TARGET_ID
+        return load_line_config().get("vendor_target_id")
     if LINE_TARGET_ID:
         return LINE_TARGET_ID
-    if not LINE_CONFIG_FILE.exists():
-        return None
-    try:
-        return json.loads(LINE_CONFIG_FILE.read_text(encoding="utf-8")).get("target_id")
-    except Exception:
-        return None
+    return load_line_config().get("target_id")
 
 
-def save_line_target_id(target_id, source_type="unknown"):
+def save_line_target_id(target_id, source_type="unknown", target_type="staff"):
     if not target_id:
         return
-    LINE_CONFIG_FILE.write_text(
-        json.dumps(
-            {
-                "target_id": target_id,
-                "source_type": source_type,
-                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            },
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    logger.info("LINE target saved: %s %s", source_type, target_id)
+    config = load_line_config()
+    field_name = "vendor_target_id" if target_type == "vendor" else "target_id"
+    config[field_name] = target_id
+    config[f"{target_type}_source_type"] = source_type
+    config[f"{target_type}_updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    write_line_config(config)
+    logger.info("LINE %s target saved: %s %s", target_type, source_type, target_id)
 
 
-def send_line_message(message):
-    target_id = load_line_target_id()
+def send_line_message(message, target_type="staff", target_id=None):
+    target_id = target_id or load_line_target_id(target_type)
     if not LINE_CHANNEL_ACCESS_TOKEN:
         return False, "missing LINE_CHANNEL_ACCESS_TOKEN"
     if not target_id:
-        return False, "missing LINE target. Add bot to the target chat and send one message, or set LINE_TARGET_ID."
+        env_name = "LINE_VENDOR_TARGET_ID" if target_type == "vendor" else "LINE_TARGET_ID"
+        return False, f"missing LINE {target_type} target. Add bot to the target chat and send one message, or set {env_name}."
 
     payload = json.dumps({"to": target_id, "messages": [{"type": "text", "text": message}]}).encode("utf-8")
     req = urllib.request.Request(
@@ -284,8 +293,20 @@ def build_crowd_alert_message(zone_id, config, count, limit):
     )
 
 
+def build_vendor_crowd_alert_message(zone_id, config, count, limit):
+    zone_name = config.get("name", zone_id)
+    return (
+        "SmartFlow AI vendor notice\n"
+        f"Area: {zone_name}\n"
+        f"Visitors now: {count} people\n"
+        f"High-crowd trigger: more than {limit} people\n"
+        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "Please prepare staff, products, and queue flow."
+    )
+
+
 def maybe_send_crowd_alert(zone_id, config, count):
-    global line_alerts_sent
+    global line_alerts_sent, vendor_line_alerts_sent
     limit = int(config.get("limit", DEFAULT_CAMERA_LIMIT))
     if count <= limit:
         return False
@@ -304,15 +325,24 @@ def maybe_send_crowd_alert(zone_id, config, count):
     )
     message = build_crowd_alert_message(zone_id, config, count, limit)
     ok, detail = send_line_message(message)
-    if ok:
+    vendor_ok, vendor_detail = send_line_message(
+        build_vendor_crowd_alert_message(zone_id, config, count, limit),
+        target_type="vendor",
+    )
+    if ok or vendor_ok:
         last_line_alert_at[zone_id] = now_ts
-        line_alerts_sent += 1
+        if ok:
+            line_alerts_sent += 1
+        if vendor_ok:
+            vendor_line_alerts_sent += 1
         if zone_id in zone_data:
             zone_data[zone_id]["last_line_alert"] = {
                 "sent_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "count": count,
                 "limit": limit,
                 "detail": detail,
+                "vendor_sent": vendor_ok,
+                "vendor_detail": vendor_detail,
             }
         logger.info("LINE alert sent: %s count=%s", zone_id, count)
         return True
@@ -747,19 +777,32 @@ async def line_webhook(request: Request):
         source = event.get("source", {})
         target_id = source.get("groupId") or source.get("roomId") or source.get("userId")
         if target_id:
-            save_line_target_id(target_id, source.get("type", "unknown"))
-    return {"ok": True, "target_id": load_line_target_id()}
+            message_text = str(event.get("message", {}).get("text", "")).strip().lower()
+            vendor_target_id = load_line_target_id("vendor")
+            target_type = "vendor" if (
+                message_text in {"vendor", "merchant", "seller", "vendors"} or target_id == vendor_target_id
+            ) else "staff"
+            save_line_target_id(target_id, source.get("type", "unknown"), target_type)
+    return {
+        "ok": True,
+        "target_id": load_line_target_id("staff"),
+        "vendor_target_id": load_line_target_id("vendor"),
+    }
 
 
 @app.get("/api/line/status")
 async def line_status_api():
-    target_id = load_line_target_id()
+    target_id = load_line_target_id("staff")
+    vendor_target_id = load_line_target_id("vendor")
     return {
         "has_token": bool(LINE_CHANNEL_ACCESS_TOKEN),
         "has_target": bool(target_id),
+        "has_vendor_target": bool(vendor_target_id),
         "target_id": target_id,
+        "vendor_target_id": vendor_target_id,
         "cooldown_seconds": LINE_ALERT_COOLDOWN_SECONDS,
         "alerts_sent": line_alerts_sent,
+        "vendor_alerts_sent": vendor_line_alerts_sent,
         "last_alert_by_camera": {
             zone_id: data.get("last_line_alert")
             for zone_id, data in zone_data.items()
@@ -776,6 +819,19 @@ async def line_test_api():
         "หากได้รับข้อความนี้ แปลว่าระบบ LINE พร้อมใช้งาน"
     )
     ok, detail = send_line_message(message)
+    if not ok:
+        raise HTTPException(status_code=400, detail=detail)
+    return {"ok": True, "detail": detail}
+
+
+@app.post("/api/line/vendors/test")
+async def line_vendor_test_api():
+    message = (
+        "SmartFlow AI vendor group test\n"
+        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "Vendor high-crowd notifications are ready."
+    )
+    ok, detail = send_line_message(message, target_type="vendor")
     if not ok:
         raise HTTPException(status_code=400, detail=detail)
     return {"ok": True, "detail": detail}
