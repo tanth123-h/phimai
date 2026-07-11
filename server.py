@@ -13,6 +13,7 @@ import os
 import threading
 import time
 import urllib.request
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 import atexit
@@ -80,7 +81,16 @@ DEFAULT_CAMERAS = [
     },
 ]
 
-app = FastAPI(title="Phimai SmartFlow AI Local")
+@asynccontextmanager
+async def lifespan(app):
+    await start_services()
+    try:
+        yield
+    finally:
+        await stop_services()
+
+
+app = FastAPI(title="Phimai SmartFlow AI Local", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -230,7 +240,7 @@ def init_database():
         db_ready = True
         logger.info("PostgreSQL visitor history ready")
     except Exception as exc:
-        logger.exception("Cannot initialize PostgreSQL visitor history; falling back to CSV: %s", exc)
+        logger.error("Cannot initialize PostgreSQL visitor history; falling back to CSV: %s", exc)
 
 
 def save_visitor_log_to_db(zone_id, current_count):
@@ -970,8 +980,7 @@ async def line_vendor_test_api():
     return {"ok": True, "detail": detail}
 
 
-@app.on_event("startup")
-async def startup():
+async def start_services():
     init_database()
 
     # เริ่มระบบตรวจสอบและเชื่อมต่อ VPN เบื้องหลัง
@@ -997,8 +1006,7 @@ async def startup():
         logger.info("Camera workers disabled by ENABLE_CAMERA_WORKER=false")
 
 
-@app.on_event("shutdown")
-async def shutdown():
+async def stop_services():
     # ปิดระบบตรวจสอบและตัดการเชื่อมต่อ VPN เมื่อเซิร์ฟเวอร์หยุดทำงาน
     vpn_manager.stop_monitoring()
     logger.info("SmartFlow AI local backend shutdown complete")
