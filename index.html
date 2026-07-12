@@ -6,15 +6,25 @@
   <title>อุทยานประวัติศาสตร์พิมาย — Phimai Historical Park</title>
   <meta name="description" content="อุทยานประวัติศาสตร์พิมาย ปราสาทหินขอมที่ยิ่งใหญ่ที่สุดในประเทศไทย จังหวัดนครราชสีมา" />
 
-  <!-- Google Fonts: Sarabun (ไทย) + Cormorant Garant (display) -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23D97B35'/><path d='M16 6 L20 14 L28 15 L22 21 L24 30 L16 26 L8 30 L10 21 L4 15 L12 14 Z' fill='white' opacity='0.9'/></svg>" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="อุทยานประวัติศาสตร์พิมาย — Phimai Historical Park" />
+  <meta property="og:description" content="ปราสาทหินขอมที่ยิ่งใหญ่ที่สุดในประเทศไทย — ต้นแบบของนครวัด กว่า 900 ปีแห่งประวัติศาสตร์" />
+  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/4/4a/Phimai%2C_Prasat_Hin_Phimai_%286198222541%29.jpg" />
+  <meta property="og:type" content="website" />
+  <!-- Google Fonts: Sarabun (ไทย) + Outfit (display) + Cormorant Garant (editorial) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,600;0,700;1,400&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- สไตล์หลัก -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+
+  <!-- skip to content — accessibility -->
+  <a href="#hero" class="skip-link">ข้ามไปเนื้อหาหลัก</a>
 
   <!-- ============================================================
        NAVIGATION — แก้เมนูได้ที่นี่
@@ -25,7 +35,9 @@
 
         <!-- โลโก้ -->
         <a href="#hero" class="nav-logo">
-          <div class="nav-logo-icon">🏛️</div>
+          <div class="nav-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22h18M6 22V8l6-6 6 6v14M10 22V16h4v6"/><path d="M9 8h.01M15 8h.01"/></svg>
+          </div>
           <div class="nav-logo-text">
             สถานที่
             <span>อุทยานประวัติศาสตร์พิมาย</span>
@@ -52,7 +64,9 @@
 
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobileMenu">
-    <span class="mobile-close" id="mobileClose">✕</span>
+    <button class="mobile-close" id="mobileClose" aria-label="ปิดเมนู">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
     <a href="#highlights">ไฮไลท์</a>
     <a href="#info">ประวัติศาสตร์</a>
     <a href="#gallery">แกลเลอรี</a>
@@ -73,7 +87,7 @@
     <div class="hero-content">
       <!-- badge ด้านบน -->
       <div class="hero-badge">
-        <span>🇹🇭</span> นครราชสีมา · <em>ประเทศไทย</em>
+        <span class="hero-badge-flag" aria-label="Thailand">TH</span> นครราชสีมา · <em>ประเทศไทย</em>
       </div>
 
       <!-- ชื่อหลัก -->
@@ -89,10 +103,12 @@
       <!-- ปุ่ม -->
       <div class="hero-actions">
         <a href="#info" class="btn btn-primary">
-          <span>✦</span> สำรวจอุทยาน
+          สำรวจอุทยาน
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <a href="#chatbot" class="btn btn-ghost-white">
-          <span>🤖</span> ถามไกด์ AI
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          ถามไกด์ AI
         </a>
       </div>
 
@@ -140,7 +156,9 @@
 
       <div class="highlights-grid">
         <div class="highlight-card reveal reveal-delay-1">
-          <div class="highlight-icon">🏛️</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22h18M6 22V8l6-6 6 6v14M10 22V16h4v6"/></svg>
+          </div>
           <div class="highlight-title">บรรพบุรุษของนครวัด</div>
           <p class="highlight-desc">
             สร้างก่อนนครวัด และถูกมองว่าเป็นต้นแบบทางสถาปัตยกรรมของวัดอันลือชื่อในกัมพูชา
@@ -148,7 +166,9 @@
           </p>
         </div>
         <div class="highlight-card reveal reveal-delay-2">
-          <div class="highlight-icon">🐍</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c3-3 6 3 9 0s6-3 9 0M3 12c3-3 6 3 9 0s6-3 9 0M3 7c3-3 6 3 9 0s6-3 9 0"/></svg>
+          </div>
           <div class="highlight-title">สะพานนาคราช</div>
           <p class="highlight-desc">
             ข้ามสะพานพญานาค 7 เศียร — สัญลักษณ์แห่งการก้าวจากโลกมนุษย์สู่ดินแดนของเทพเจ้า
@@ -156,7 +176,9 @@
           </p>
         </div>
         <div class="highlight-card reveal reveal-delay-3">
-          <div class="highlight-icon">🛕</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
           <div class="highlight-title">จุดบรรจบของศาสนา</div>
           <p class="highlight-desc">
             สถานที่ศักดิ์สิทธิ์หายากที่ผสานพุทธ พราหมณ์ และผีสางเข้าด้วยกัน
@@ -164,7 +186,9 @@
           </p>
         </div>
         <div class="highlight-card reveal reveal-delay-1">
-          <div class="highlight-icon">🗺️</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/><circle cx="9" cy="12" r="2"/></svg>
+          </div>
           <div class="highlight-title">จุดเริ่มราชมรรคาโบราณ</div>
           <p class="highlight-desc">
             พิมายอยู่ที่ปลายทางเดินทาง 225 กม. เชื่อมสู่นครวัด ตลอดเส้นทางมีปราสาทหิน
@@ -172,7 +196,9 @@
           </p>
         </div>
         <div class="highlight-card reveal reveal-delay-2">
-          <div class="highlight-icon">🌳</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><path d="M15 5l4 4"/></svg>
+          </div>
           <div class="highlight-title">สระสีงาม — ต้นไทรยักษ์</div>
           <p class="highlight-desc">
             ห่างออกไปเพียงไม่กี่นาที — ป่าต้นไทรที่ใหญ่ที่สุดในไทย รากไม้โอบกอดกันราวกับวิญญาณ
@@ -180,10 +206,12 @@
           </p>
         </div>
         <div class="highlight-card reveal reveal-delay-3">
-          <div class="highlight-icon">🤖</div>
-          <div class="highlight-title">SmartFlow AI — เยี่ยมชมอย่างชาญฉลาด</div>
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="highlight-title">ระบบ AI ตรวจจับฝูงชน</div>
           <p class="highlight-desc">
-            ระบบ AI ตรวจจับฝูงชนในแบบเรียลไทม์ ส่งการแจ้งเตือนผ่าน LINE
+            ระบบ AI วิเคราะห์ความหนาแน่นผู้เข้าชมแบบเรียลไทม์ ส่งการแจ้งเตือนผ่าน LINE
             ให้เจ้าหน้าที่และพ่อค้าแม่ค้าใกล้เคียง เพื่อให้การเยี่ยมชมของคุณปลอดภัยและสะดวกยิ่งขึ้น
           </p>
         </div>
@@ -209,40 +237,58 @@
         <div class="carousel-track" id="carouselTrack">
 
           <!-- ---- เพิ่ม/แก้รูปได้ที่นี่ ---- -->
-          <div class="carousel-slide">
-            <img src="https://seaarts.sac.or.th/uploads/artwork/70/gallery/large-57c53f696ccb5.jpg" alt="ปรางค์ประธาน" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Prasat_Hin_Phimai_National_Park.jpg"
+               data-caption="ปรางค์ประธาน"
+               data-desc="หอคอยกลางของปราสาทหินพิมาย สร้างด้วยหินทรายสีขาว สัญลักษณ์แห่งเขาพระสุเมรุ ศูนย์กลางของจักรวาลในคติพราหมณ์-พุทธ สร้างในพุทธศตวรรษที่ 16–17">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Prasat_Hin_Phimai_National_Park.jpg" alt="ปรางค์ประธาน มุมมองด้านหน้าของปราสาทหินพิมาย" loading="lazy" />
             <div class="carousel-slide-overlay">
               <span class="carousel-slide-caption">ปรางค์ประธาน</span>
             </div>
           </div>
-          <div class="carousel-slide">
-            <img src="https://isan.tiewrussia.com/khom_2/%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B8%AB%E0%B8%B4%E0%B8%99%E0%B8%9E%E0%B8%B4%E0%B8%A1%E0%B8%B2%E0%B8%A2/05.jpg" alt="ระเบียงหิน" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Phimai%2C_Prasat_Hin_Phimai_%286198222541%29.jpg"
+               data-caption="ภายในอุทยาน"
+               data-desc="มุมมองภายในบริเวณอุทยานประวัติศาสตร์พิมาย แสดงให้เห็นสัดส่วนอันยิ่งใหญ่ของสถาปัตยกรรมขอม พื้นที่คูน้ำ 1,030 × 565 เมตร ใกล้เคียงขนาดนครวัด">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Phimai%2C_Prasat_Hin_Phimai_%286198222541%29.jpg" alt="ปราสาทหินพิมาย มุมมองจากภายใน" loading="lazy" />
             <div class="carousel-slide-overlay">
-              <span class="carousel-slide-caption">ระเบียงหินโบราณ</span>
+              <span class="carousel-slide-caption">ภายในอุทยาน</span>
             </div>
           </div>
-          <div class="carousel-slide">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/%E0%B8%AA%E0%B8%B0%E0%B8%9E%E0%B8%B2%E0%B8%99%E0%B8%99%E0%B8%B2%E0%B8%84%E0%B8%A3%E0%B8%B2%E0%B8%8A-01.jpg" alt="สะพานนาค" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Phimai-AVR2008-001.jpg"
+               data-caption="สะพานนาคราช"
+               data-desc="สะพานพญานาค 7 เศียร ทางเข้าสู่ปราสาทหลัก ราวสะพานแกะสลักเป็นลำตัวนาคต่อเนื่อง สัญลักษณ์ของการข้ามจากโลกมนุษย์สู่ดินแดนศักดิ์สิทธิ์">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Phimai-AVR2008-001.jpg" alt="สะพานนาคราช ทางเข้าปราสาทหินพิมาย" loading="lazy" />
             <div class="carousel-slide-overlay">
               <span class="carousel-slide-caption">สะพานนาคราช</span>
             </div>
           </div>
-          <div class="carousel-slide">
-            <img src="https://www.bloggang.com/data/t/tuk-tukatkorat/picture/1613119514.jpg" alt="ลวดลายแกะสลัก" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Phimai_Lintel.jpg"
+               data-caption="ทับหลังแกะสลัก"
+               data-desc="ทับหลังเหนือประตูด้านเหนือของปรางค์ประธาน แสดงภาพพระวิษณุ 4 กร กำลังเต้นรำ หนึ่งในงานแกะสลักที่ประณีตและสมบูรณ์ที่สุดในอุทยาน">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Phimai_Lintel.jpg" alt="ทับหลังแกะสลักลายพระวิษณุ 4 กร" loading="lazy" />
             <div class="carousel-slide-overlay">
-              <span class="carousel-slide-caption">ลวดลายแกะสลักบนหินทราย</span>
+              <span class="carousel-slide-caption">ทับหลังแกะสลัก</span>
             </div>
           </div>
-          <div class="carousel-slide">
-            <img src="https://media.istockphoto.com/id/1184467016/th/%E0%B8%A3%E0%B8%B9%E0%B8%9B%E0%B8%96%E0%B9%88%E0%B8%B2%E0%B8%A2/%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%AD%E0%B8%B2%E0%B8%97%E0%B8%B4%E0%B8%95%E0%B8%A2%E0%B9%8C%E0%B8%95%E0%B8%81%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B8%AB%E0%B8%B4%E0%B8%99%E0%B8%9E%E0%B8%B4%E0%B8%A1%E0%B8%B2%E0%B8%A2%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%AA%E0%B8%A7%E0%B8%A2%E0%B8%87%E0%B8%B2%E0%B8%A1.jpg?s=612x612&w=0&k=20&c=r2EybfNe341rV-UfjRoxaf6UMxsQmMRXT3CzD2Z3m_g=" alt="ยามเย็น" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/2/24/Phimai-pano-3.jpg"
+               data-caption="วิหารกลาง"
+               data-desc="มุมมองกว้างของวิหารกลาง (Central Sanctuary) ในบริเวณกำแพงแก้วชั้นใน ถ่ายจากทิศตะวันตกเฉียงเหนือ แสดงองค์ประกอบสถาปัตยกรรมครบถ้วน">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Phimai-pano-3.jpg" alt="วิหารกลาง ปราสาทหินพิมาย มุมมองจากทิศตะวันตกเฉียงเหนือ" loading="lazy" />
             <div class="carousel-slide-overlay">
-              <span class="carousel-slide-caption">บรรยากาศยามเย็น</span>
+              <span class="carousel-slide-caption">วิหารกลาง</span>
             </div>
           </div>
-          <div class="carousel-slide">
-            <img src="https://snappix.co.th/wp-content/uploads/2024/03/%E0%B9%84%E0%B8%97%E0%B8%A3%E0%B8%87%E0%B8%B2%E0%B8%A1_4-683x1024.jpg" alt="สระสีงาม" loading="lazy" />
+          <div class="carousel-slide"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Phimai-AVR2008-014.jpg"
+               data-caption="ทับหลังรามายณะ"
+               data-desc="ทับหลังมณฑปตะวันตก แสดงฉากจากรามายณะ — พระรามและพระลักษมณ์ติดบ่วงพญานาค แสดงการผสมผสานระหว่างคติฮินดูและพุทธในปราสาทหินพิมาย">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Phimai-AVR2008-014.jpg" alt="ทับหลังมณฑปตะวันตก ภาพจากรามายณะ" loading="lazy" />
             <div class="carousel-slide-overlay">
-              <span class="carousel-slide-caption">สระสีงาม — ต้นไทรยักษ์</span>
+              <span class="carousel-slide-caption">ทับหลังรามายณะ</span>
             </div>
           </div>
           <!-- ---- สิ้นสุดส่วนรูป ---- -->
@@ -252,9 +298,13 @@
 
       <!-- ปุ่มควบคุม carousel -->
       <div class="carousel-controls">
-        <button class="carousel-btn" id="prevBtn" aria-label="ก่อนหน้า">←</button>
+        <button class="carousel-btn" id="prevBtn" aria-label="ก่อนหน้า">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <div class="carousel-dots" id="carouselDots"></div>
-        <button class="carousel-btn" id="nextBtn" aria-label="ถัดไป">→</button>
+        <button class="carousel-btn" id="nextBtn" aria-label="ถัดไป">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
     </div>
   </section>
@@ -269,10 +319,10 @@
         <!-- รูปภาพ (ซ้าย) -->
         <div class="info-image-stack reveal">
           <div class="info-img-main">
-            <img src="https://peartongmomay.wordpress.com/wp-content/uploads/2014/09/1297015305.jpg" alt="ปราสาทหินพิมาย" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/cf/Phimai_Prang.jpg" alt="ปรางค์ประธาน ปราสาทหินพิมาย มุมมองจากทิศใต้" />
           </div>
           <div class="info-img-float">
-            <img src="https://f.tpkcdn.com/images-720/e88a12ff55185f5fdc31c9c7f31c331e.jpg" alt="" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Phimai-pano-5.jpg" alt="ทับหลังพระพุทธรูปยืน ปราสาทหินพิมาย" />
           </div>
           <div class="info-badge-float">
             ศตวรรษที่ 16–17
@@ -309,6 +359,14 @@
               <div class="info-fact-label">ค่าเข้า (คนไทย)</div>
               <div class="info-fact-value">20 บาท</div>
             </div>
+            <div class="info-fact">
+              <div class="info-fact-label">ขนาดคูน้ำ</div>
+              <div class="info-fact-value">1,030 × 565 เมตร</div>
+            </div>
+            <div class="info-fact">
+              <div class="info-fact-label">ระยะถึงโคราช</div>
+              <div class="info-fact-value">60 กิโลเมตร</div>
+            </div>
           </div>
 
           <p class="info-body-text">
@@ -317,9 +375,16 @@
           </p>
           <p class="info-body-text">
             ต่างจากปราสาทขอมส่วนใหญ่ พิมายหันหน้าไปทาง <strong>ทิศตะวันออกเฉียงใต้ — ตรงสู่นครวัด</strong>
-            คูน้ำรูปสี่เหลี่ยมผืนผ้า (1,030 × 565 ม.) มีขนาดใกล้เคียงกับนครวัดเอง
-            ได้รับการบูรณะโดยทีมไทย-ฝรั่งเศส (พ.ศ. 2507–2512) และเปิดอย่างเป็นทางการเมื่อ
-            12 เมษายน 2532 โดย สมเด็จพระเทพรัตนราชสุดาฯ
+            ซึ่งนักวิชาการเชื่อว่าเป็นการแสดงออกถึงความผูกพันทางศาสนาและการเมืองกับอาณาจักรเขมร
+            ระยะทางโดยตรงจากพิมายถึงนครวัดคือ 225 กิโลเมตร ตลอดเส้นทางมีปราสาทหินเรียงรายเป็นด่านพักแรม
+          </p>
+          <p class="info-body-text">
+            ปราสาทหินพิมายสร้างจาก <strong>หินทรายสีขาว</strong> ซึ่งหายากในภูมิภาคนี้ — ต่างจากปราสาทขอมส่วนใหญ่ที่ใช้หินทรายสีชมพู
+            ความขาวของหินทรายทำให้ปราสาทดูโดดเด่นในแสงแดด และเป็นเหตุผลหนึ่งที่นักวิชาการเชื่อว่าพิมายมีสถานะพิเศษในจักรวรรดิเขมร
+          </p>
+          <p class="info-body-text">
+            ได้รับการบูรณะโดยทีมไทย-ฝรั่งเศส (พ.ศ. 2507–2512) ด้วยวิธี <strong>Anastylosis</strong> — ถอดหินทุกก้อนออก ถ่ายภาพ และนำกลับเข้าที่ตามตำแหน่งเดิม
+            ปัจจุบันอยู่ในความดูแลของกรมศิลปากร กระทรวงวัฒนธรรม
           </p>
 
           <!-- Timeline -->
@@ -328,42 +393,79 @@
               <div class="timeline-dot"></div>
               <div>
                 <div class="timeline-year">~ พ.ศ. 1623</div>
-                <div class="timeline-text">เริ่มสร้างภายใต้การปกครองของพระเจ้าชัยวรมันที่ 6 สร้างปราสาทหินทรายองค์แรก</div>
+                <div class="timeline-text">เริ่มสร้างภายใต้การปกครองของพระเจ้าชัยวรมันที่ 6 — ปราสาทหินทรายสีขาวองค์แรกในดินแดนอีสาน</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div>
                 <div class="timeline-year">พ.ศ. 1651</div>
-                <div class="timeline-text">พบจารึกแรกที่บันทึกชื่อ "กมรเตง ชคต วิมาย" ยืนยันชื่อโบราณของเมือง</div>
+                <div class="timeline-text">พบจารึกแรกบันทึกชื่อ "กมรเตง ชคต วิมาย" ยืนยันชื่อโบราณของเมืองและสถานะศาสนสถานสำคัญ</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 1650–1700</div>
+                <div class="timeline-text">ขยายก่อสร้างอย่างต่อเนื่อง เพิ่มโคปุระ กำแพงแก้ว และทางเดินพิธีกรรม — ปราสาทเริ่มมีรูปแบบคล้ายนครวัด</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div>
                 <div class="timeline-year">พ.ศ. 1724–1762</div>
-                <div class="timeline-text">พระเจ้าชัยวรมันที่ 7 ขยายเพิ่มระเบียง ห้องสมุด และพระรูปของกษัตริย์</div>
+                <div class="timeline-text">พระเจ้าชัยวรมันที่ 7 ขยายเพิ่มระเบียง ห้องสมุด 2 หลัง และพระรูปของกษัตริย์ในฐานะโพธิสัตว์</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div>
-                <div class="timeline-year">พ.ศ. 2400-2444</div>
-                <div class="timeline-text">Étienne Aymonier นักภูมิศาสตร์ชาวฝรั่งเศสสำรวจและบันทึกซากปราสาทอย่างเป็นทางการครั้งแรก</div>
+                <div class="timeline-year">พ.ศ. 1800+</div>
+                <div class="timeline-text">จักรวรรดิเขมรเสื่อมอำนาจ พิมายค่อยๆ ถูกทิ้งร้าง แต่ยังคงเป็นศูนย์กลางชุมชนท้องถิ่น</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-year">พ.ศ. 2400–2444</div>
+                <div class="timeline-text">Étienne Aymonier นักภูมิศาสตร์ฝรั่งเศสสำรวจและบันทึกซากปราสาทอย่างเป็นทางการ ทำให้โลกรับรู้ถึงความยิ่งใหญ่ของพิมาย</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div>
                 <div class="timeline-year">พ.ศ. 2507–2512</div>
-                <div class="timeline-text">ทีมงานไทย-ฝรั่งเศสบูรณะด้วยวิธี Anastylosis ถอดหินทุกก้อนออกแล้วนำกลับเข้าที่ตามเดิม</div>
+                <div class="timeline-text">ทีมงานไทย-ฝรั่งเศสบูรณะด้วยวิธี Anastylosis ถอดหินทุกก้อนออกแล้วนำกลับเข้าที่ตามเดิม ใช้เวลา 5 ปี</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div>
                 <div class="timeline-year">12 เม.ย. 2532</div>
-                <div class="timeline-text">เปิดเป็นอุทยานประวัติศาสตร์อย่างเป็นทางการโดยสมเด็จพระเทพรัตนราชสุดาฯ อยู่ในความดูแลของกรมศิลปากร</div>
+                <div class="timeline-text">เปิดเป็นอุทยานประวัติศาสตร์อย่างเป็นทางการโดยสมเด็จพระเทพรัตนราชสุดาฯ — วันจักรี อันเป็นมงคลยิ่ง</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- เพิ่มเติม: บริบทเปรียบเทียบนครวัด -->
+          <div class="info-compare-box">
+            <div class="info-compare-title">พิมาย vs นครวัด</div>
+            <div class="info-compare-grid">
+              <div class="info-compare-item">
+                <div class="info-compare-label">สร้างก่อนนครวัด</div>
+                <div class="info-compare-val">~100 ปี</div>
+              </div>
+              <div class="info-compare-item">
+                <div class="info-compare-label">หันหน้าตรงสู่</div>
+                <div class="info-compare-val">นครวัด (SE)</div>
+              </div>
+              <div class="info-compare-item">
+                <div class="info-compare-label">ระยะทางโดยตรง</div>
+                <div class="info-compare-val">225 กม.</div>
+              </div>
+              <div class="info-compare-item">
+                <div class="info-compare-label">วัสดุหลัก</div>
+                <div class="info-compare-val">หินทรายขาว</div>
               </div>
             </div>
           </div>
@@ -388,7 +490,7 @@
       <div class="arch-grid">
         <div class="arch-card reveal reveal-delay-1">
           <div class="arch-card-img">
-            <img src="https://seaarts.sac.or.th/uploads/artwork/70/gallery/large-57c53f696ccb5.jpg" alt="ปรางค์ประธาน" loading="lazy" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Phimai_Historical_Park_Thailand_04.jpg" alt="ปรางค์ประธาน หอคอยกลางของปราสาทหินพิมาย" loading="lazy" />
           </div>
           <div class="arch-card-body">
             <div class="arch-card-title">ปรางค์ประธาน</div>
@@ -397,7 +499,7 @@
         </div>
         <div class="arch-card reveal reveal-delay-2">
           <div class="arch-card-img">
-            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj3aq5kFqvOr1rzRalMTwksdLKJSEfvyHflT-b_DIjnrVRSMkf3vHx8yJOShLxJ-K2DOMqzJmHRB6SZuWs6qKI1Gips6blM3tcrz_6uFeb8JVsxF60W9Oh322ArgGbRHKbVQ1Mvw0t57V8y/s1600/%25E0%25B8%25AA%25E0%25B8%25B4%25E0%25B8%2587%25E0%25B8%25AB%25E0%25B9%258C-%25E0%25B8%259E%25E0%25B8%258D%25E0%25B8%25B2%25E0%25B8%2599%25E0%25B8%25B2%25E0%25B8%2584.jpg" alt="สะพานนาค" loading="lazy" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Phimai-AVR2008-001.jpg" alt="สะพานนาคราช พญานาค 7 เศียร ทางเข้าปราสาท" loading="lazy" />
           </div>
           <div class="arch-card-body">
             <div class="arch-card-title">สะพานนาคราช</div>
@@ -406,20 +508,20 @@
         </div>
         <div class="arch-card reveal reveal-delay-3">
           <div class="arch-card-img">
-            <img src="https://qrcode.finearts.go.th/images/hp_content_all/hp10/ImHp10/hp10-003-01.JPG" alt="ซุ้มประตูและกำแพงแก้ว" loading="lazy" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Phimai_Lintel.jpg" alt="ทับหลังแกะสลักพระวิษณุ 4 กร ด้านเหนือปรางค์ประธาน" loading="lazy" />
           </div>
           <div class="arch-card-body">
-            <div class="arch-card-title">ซุ้มประตูและกำแพงแก้ว</div>
-            <p class="arch-card-desc">เป็นจุดเปลี่ยนผ่านจากโลกมนุษย์สู่โลกแห่งจิตวิญญาณ ในสมัยโบราณผู้มาประกอบพิธีต้องผ่านซุ้มประตูเหล่านี้เพื่อเตรียมตัวและทำจิตใจให้บริสุทธิ์ก่อนเข้าสู่ปราสาทประธาน</p>
+            <div class="arch-card-title">ทับหลังแกะสลัก</div>
+            <p class="arch-card-desc">ทับหลังเหนือประตูทางเข้าแสดงภาพพระวิษณุ 4 กร เต้นรำ — หนึ่งในงานแกะสลักที่ประณีตที่สุดในอุทยาน</p>
           </div>
         </div>
         <div class="arch-card reveal reveal-delay-1">
           <div class="arch-card-img">
-            <img src="https://i.ytimg.com/vi/iYYBwU64j0Y/maxresdefault.jpg" alt="ปรางค์พรหมทัต" loading="lazy" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Phimai-AVR2008-014.jpg" alt="ทับหลังมณฑปตะวันตก ภาพพระรามและพระลักษมณ์ในรามายณะ" loading="lazy" />
           </div>
           <div class="arch-card-body">
-            <div class="arch-card-title">ปรางค์พรหมทัต & ปรางค์หินแดง</div>
-            <p class="arch-card-desc">ปรางค์คู่ที่โอบปรางค์ประธาน ปรางค์หินแดงสร้างด้วยศิลาแลงสีน้ำตาลแดง ตัดกับสีขาวของหินทราย</p>
+            <div class="arch-card-title">มณฑปและระเบียง</div>
+            <p class="arch-card-desc">ทับหลังมณฑปตะวันตกแสดงฉากจากรามายณะ — พระรามและพระลักษมณ์ติดบ่วงพญานาค งดงามและสมบูรณ์ที่สุดในบรรดาทับหลังทั้งหมด</p>
           </div>
         </div>
       </div>
@@ -443,28 +545,36 @@
           <!-- ข้อมูลติดต่อ-เวลา -->
           <div class="map-info-list">
             <div class="map-info-item">
-              <div class="map-info-icon">📍</div>
+              <div class="map-info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
               <div>
                 <div class="map-info-label">ที่อยู่</div>
                 <div class="map-info-value">ตำบลในเมือง อำเภอพิมาย<br/>นครราชสีมา 30110</div>
               </div>
             </div>
             <div class="map-info-item">
-              <div class="map-info-icon">🕐</div>
+              <div class="map-info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
               <div>
                 <div class="map-info-label">เวลาเปิด-ปิด</div>
                 <div class="map-info-value">ทุกวัน 07:00 – 18:00 น.</div>
               </div>
             </div>
             <div class="map-info-item">
-              <div class="map-info-icon">🚌</div>
+              <div class="map-info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h5l2 3v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              </div>
               <div>
                 <div class="map-info-label">โดยรถโดยสาร</div>
                 <div class="map-info-value">จากขนส่งโคราช ออกทุก 30 นาที<br/>ใช้เวลาประมาณ 1 ชั่วโมง</div>
               </div>
             </div>
             <div class="map-info-item">
-              <div class="map-info-icon">🚗</div>
+              <div class="map-info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+              </div>
               <div>
                 <div class="map-info-label">โดยรถยนต์</div>
                 <div class="map-info-value">ทางหลวง 2 → ทางหลวง 206<br/>60 กม. จากใจกลางเมืองโคราช</div>
@@ -524,22 +634,30 @@
       </div>
       <div class="tips-grid">
         <div class="tip-card reveal reveal-delay-1">
-          <div class="tip-icon">🌤️</div>
+          <div class="tip-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </div>
           <div class="tip-title">ช่วงเวลาที่ดีที่สุด</div>
           <p class="tip-text">พฤศจิกายน–กุมภาพันธ์ อากาศเย็นสบายสุดยอดสำหรับการสำรวจ หลีกเลี่ยงช่วงกลางวันในหน้าร้อน (มีนาคม–พฤษภาคม)</p>
         </div>
         <div class="tip-card reveal reveal-delay-2">
-          <div class="tip-icon">👒</div>
+          <div class="tip-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a5 5 0 015 5c0 3-5 13-5 13S7 10 7 7a5 5 0 015-5z"/><path d="M12 7v.01"/></svg>
+          </div>
           <div class="tip-title">การแต่งกาย</div>
           <p class="tip-text">ใส่เสื้อผ้าที่เบาและระบายอากาศดี พกหมวกและครีมกันแดดเป็นสิ่งจำเป็น ควรพกร่มเพราะพื้นที่มีร่มเงาน้อย</p>
         </div>
         <div class="tip-card reveal reveal-delay-3">
-          <div class="tip-icon">⏱️</div>
+          <div class="tip-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
           <div class="tip-title">ระยะเวลาที่ใช้</div>
           <p class="tip-text">ควรใช้เวลา 2–3 ชั่วโมงในการสำรวจอุทยานและพิพิธภัณฑ์ บวกเพิ่มอีก 1 ชั่วโมงหากต้องการไปสระสีงาม</p>
         </div>
         <div class="tip-card reveal reveal-delay-1">
-          <div class="tip-icon">🗣️</div>
+          <div class="tip-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
           <div class="tip-title">ไกด์อาสาสมัคร</div>
           <p class="tip-text">มีไกด์อาสาสมัครที่พูดภาษาอังกฤษได้ในวันทำการ สอบถามที่ช่องจำหน่ายตั๋วเมื่อมาถึง</p>
         </div>
@@ -565,14 +683,14 @@
 
           <!-- ปุ่มหัวข้อ (คลิกแล้วส่งคำถามอัตโนมัติ) -->
           <div class="chat-topic-tags">
-            <span class="chat-tag" onclick="sendChatQuick('เวลาเปิด-ปิดกี่โมง')">⏰ เวลาเปิด-ปิด</span>
-            <span class="chat-tag" onclick="sendChatQuick('ค่าเข้าชมเท่าไหร่')">🎟️ ค่าเข้าชม</span>
-            <span class="chat-tag" onclick="sendChatQuick('ประวัติความเป็นมาของพิมาย')">📜 ประวัติ</span>
-            <span class="chat-tag" onclick="sendChatQuick('เดินทางมาพิมายยังไง')">🚌 การเดินทาง</span>
-            <span class="chat-tag" onclick="sendChatQuick('ต้องดูอะไรบ้างที่พิมาย')">🏛️ สิ่งน่าชม</span>
-            <span class="chat-tag" onclick="sendChatQuick('ระบบ SmartFlow AI คืออะไร')">🤖 SmartFlow AI</span>
-            <span class="chat-tag" onclick="sendChatQuick('ร้านอาหารใกล้พิมายมีที่ไหนบ้าง')">🍜 อาหารใกล้เคียง</span>
-            <span class="chat-tag" onclick="sendChatQuick('มีที่จอดรถไหม')">🅿️ ที่จอดรถ</span>
+            <span class="chat-tag" onclick="sendChatQuick('เวลาเปิด-ปิดกี่โมง')">เวลาเปิด-ปิด</span>
+            <span class="chat-tag" onclick="sendChatQuick('ค่าเข้าชมเท่าไหร่')">ค่าเข้าชม</span>
+            <span class="chat-tag" onclick="sendChatQuick('ประวัติความเป็นมาของพิมาย')">ประวัติ</span>
+            <span class="chat-tag" onclick="sendChatQuick('เดินทางมาพิมายยังไง')">การเดินทาง</span>
+            <span class="chat-tag" onclick="sendChatQuick('ต้องดูอะไรบ้างที่พิมาย')">สิ่งน่าชม</span>
+            <span class="chat-tag" onclick="sendChatQuick('ระบบ AI ตรวจจับฝูงชนคืออะไร')">ระบบ AI</span>
+            <span class="chat-tag" onclick="sendChatQuick('ร้านอาหารใกล้พิมายมีที่ไหนบ้าง')">อาหารใกล้เคียง</span>
+            <span class="chat-tag" onclick="sendChatQuick('มีที่จอดรถไหม')">ที่จอดรถ</span>
           </div>
         </div>
 
@@ -581,7 +699,9 @@
           <div class="chat-window">
             <!-- Header -->
             <div class="chat-header">
-              <div class="chat-avatar">🤖</div>
+              <div class="chat-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
               <div>
                 <div class="chat-header-name">PhimAI ไกด์</div>
                 <div class="chat-header-status">
@@ -595,10 +715,12 @@
             <div class="chat-messages" id="chatMessages">
               <!-- ข้อความเริ่มต้นจาก bot -->
               <div class="msg-row bot">
-                <div class="msg-avatar-sm">🤖</div>
+                <div class="msg-avatar-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
                 <div>
                   <div class="msg-bubble">
-                    สวัสดีครับ! 👋 ยินดีต้อนรับสู่อุทยานประวัติศาสตร์พิมาย<br/>
+                    สวัสดีครับ! ยินดีต้อนรับสู่อุทยานประวัติศาสตร์พิมาย<br/>
                     ผมเป็น AI ไกด์ ถามได้เลยครับ ไม่ว่าจะเป็นเรื่องประวัติ ค่าเข้า การเดินทาง หรือสถานที่น่าสนใจ
                   </div>
                   <div class="msg-time">เพิ่งได้รับ</div>
@@ -608,9 +730,9 @@
 
             <!-- ปุ่มตอบเร็ว -->
             <div class="quick-replies" id="quickReplies">
-              <button class="quick-reply" onclick="sendChatQuick('เวลาเปิด-ปิด')">⏰ เวลาเปิด</button>
-              <button class="quick-reply" onclick="sendChatQuick('ค่าเข้าชม')">🎟️ ค่าตั๋ว</button>
-              <button class="quick-reply" onclick="sendChatQuick('เดินทางยังไง')">🗺️ การเดินทาง</button>
+              <button class="quick-reply" onclick="sendChatQuick('เวลาเปิด-ปิด')">เวลาเปิด</button>
+              <button class="quick-reply" onclick="sendChatQuick('ค่าเข้าชม')">ค่าตั๋ว</button>
+              <button class="quick-reply" onclick="sendChatQuick('เดินทางยังไง')">การเดินทาง</button>
             </div>
 
             <!-- ช่องพิมพ์ -->
@@ -621,7 +743,9 @@
                 id="chatInput"
                 placeholder="ถามเกี่ยวกับพิมาย..."
               />
-              <button class="chat-send-btn" id="chatSendBtn" aria-label="ส่ง">➤</button>
+              <button class="chat-send-btn" id="chatSendBtn" aria-label="ส่ง">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z"/></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -648,36 +772,52 @@
           <!-- การ์ดติดต่อ -->
           <div class="contact-cards">
             <a href="https://line.me/ti/p/@phimaipark" target="_blank" class="contact-card">
-              <div class="contact-card-icon line">💬</div>
+              <div class="contact-card-icon line">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
               <div>
                 <div class="contact-card-label">LINE Official</div>
                 <div class="contact-card-value">@PhimaiHistoricalPark</div>
               </div>
-              <div class="contact-card-arrow">→</div>
+              <div class="contact-card-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
             </a>
             <a href="tel:+66441471568" class="contact-card">
-              <div class="contact-card-icon phone">📞</div>
+              <div class="contact-card-icon phone">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.07 2.18 2 2 0 012.04 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+              </div>
               <div>
                 <div class="contact-card-label">โทรศัพท์</div>
                 <div class="contact-card-value">044-471 568</div>
               </div>
-              <div class="contact-card-arrow">→</div>
+              <div class="contact-card-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
             </a>
             <a href="https://www.facebook.com/PhimaiHistoricalPark" target="_blank" class="contact-card">
-              <div class="contact-card-icon fb">📘</div>
+              <div class="contact-card-icon fb">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+              </div>
               <div>
                 <div class="contact-card-label">Facebook</div>
                 <div class="contact-card-value">Phimai Historical Park</div>
               </div>
-              <div class="contact-card-arrow">→</div>
+              <div class="contact-card-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
             </a>
             <a href="mailto:phimai_finearts12@hotmail.com" class="contact-card">
-              <div class="contact-card-icon email">✉️</div>
+              <div class="contact-card-icon email">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>
+              </div>
               <div>
                 <div class="contact-card-label">อีเมล</div>
                 <div class="contact-card-value">phimai_finearts12@hotmail.com</div>
               </div>
-              <div class="contact-card-arrow">→</div>
+              <div class="contact-card-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
             </a>
           </div>
 
@@ -718,7 +858,7 @@
             <label class="form-label">ข้อความ</label>
             <textarea class="form-textarea" placeholder="ถามได้เลย ไม่ว่าจะเป็นเรื่องกรุ๊ปทัวร์ ความพิเศษในการเข้าชม หรือสิ่งอำนวยความสะดวก..."></textarea>
           </div>
-          <button class="form-submit" id="formSubmitBtn">ส่งข้อความ →</button>
+          <button class="form-submit" id="formSubmitBtn">ส่งข้อความ</button>
         </div>
       </div>
     </div>
@@ -731,7 +871,9 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-logo nav-logo">
-          <div class="nav-logo-icon">🏛️</div>
+          <div class="nav-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22h18M6 22V8l6-6 6 6v14M10 22V16h4v6"/></svg>
+          </div>
           <div class="nav-logo-text">
             อุทยานประวัติศาสตร์พิมาย
             <span>Phimai Historical Park · กรมศิลปากร</span>
@@ -752,6 +894,29 @@
       </div>
     </div>
   </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox-overlay" id="lightboxOverlay" role="dialog" aria-modal="true" aria-label="ดูรูปภาพขยาย">
+    <button class="lightbox-close" id="lightboxClose" aria-label="ปิด">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <button class="lightbox-nav prev" id="lightboxPrev" aria-label="ก่อนหน้า">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="lightbox-nav next" id="lightboxNext" aria-label="ถัดไป">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <div class="lightbox-inner">
+      <div class="lightbox-img-wrap">
+        <img id="lightboxImg" src="" alt="" />
+      </div>
+      <div class="lightbox-info">
+        <div class="lightbox-caption" id="lightboxCaption"></div>
+        <div class="lightbox-desc" id="lightboxDesc"></div>
+      </div>
+      <div class="lightbox-counter" id="lightboxCounter"></div>
+    </div>
+  </div>
 
   <!-- JavaScript หลัก -->
   <script src="js/main.js"></script>

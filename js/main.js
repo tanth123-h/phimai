@@ -150,46 +150,46 @@
     {
       id: 'hours',
       triggers: ['เปิด', 'ปิด', 'เวลา', 'กี่โมง', 'opening', 'hour', 'close', 'open'],
-      answer: '🕐 อุทยานประวัติศาสตร์พิมาย เปิดให้บริการทุกวัน\n• เวลา 07:00 – 18:00 น.\n• พิพิธภัณฑ์แห่งชาติพิมาย: 09:00 – 16:00 น.\n\nแนะนำให้มาแต่เช้าเพื่อสัมผัสบรรยากาศก่อนที่จะร้อน 🌤️'
+      answer: 'อุทยานประวัติศาสตร์พิมาย เปิดให้บริการทุกวัน\n• เวลา 07:00 – 18:00 น.\n• พิพิธภัณฑ์แห่งชาติพิมาย: 09:00 – 16:00 น.\n\nแนะนำให้มาแต่เช้าเพื่อสัมผัสบรรยากาศก่อนที่จะร้อน'
     },
     {
       id: 'ticket',
       triggers: ['ค่าเข้า', 'ราคา', 'ตั๋ว', 'บาท', 'ticket', 'price', 'fee', 'cost', 'admission'],
-      answer: '🎟️ ค่าเข้าชม:\n• ชาวไทย: 20 บาท\n• ชาวต่างชาติ: 100 บาท\n• เด็กอายุต่ำกว่า 15 ปี: ฟรี\n\nซื้อตั๋วได้ที่ช่องจำหน่ายหน้าประตูทางเข้า ไม่ต้องจองล่วงหน้า'
+      answer: 'ค่าเข้าชม:\n• ชาวไทย: 20 บาท\n• ชาวต่างชาติ: 100 บาท\n• เด็กอายุต่ำกว่า 15 ปี: ฟรี\n\nซื้อตั๋วได้ที่ช่องจำหน่ายหน้าประตูทางเข้า ไม่ต้องจองล่วงหน้า'
     },
     {
       id: 'history',
       triggers: ['ประวัติ', 'ความเป็นมา', 'สร้าง', 'ขอม', 'history', 'built', 'khmer', 'king'],
-      answer: '📜 ปราสาทหินพิมายสร้างขึ้นในพุทธศตวรรษที่ 16–17 สมัยพระเจ้าชัยวรมันที่ 6 แห่งอาณาจักรเขมร\n\nถือเป็นต้นแบบของนครวัด (Angkor Wat) ในกัมพูชา มีชื่อโบราณว่า "วิมายปุระ" หรือ "วิมาย" เป็นปลายทางของเส้นทางราชมรรคา ระยะทาง 225 กม. จากนครวัด'
+      answer: 'ปราสาทหินพิมายสร้างขึ้นในพุทธศตวรรษที่ 16–17 สมัยพระเจ้าชัยวรมันที่ 6 แห่งอาณาจักรเขมร\n\nถือเป็นต้นแบบของนครวัด (Angkor Wat) ในกัมพูชา มีชื่อโบราณว่า "วิมายปุระ" หรือ "วิมาย" เป็นปลายทางของเส้นทางราชมรรคา ระยะทาง 225 กม. จากนครวัด'
     },
     {
       id: 'directions',
       triggers: ['ไป', 'เดินทาง', 'รถ', 'บัส', 'วิธี', 'direction', 'bus', 'car', 'how to get', 'travel'],
-      answer: '🗺️ การเดินทาง:\n🚌 รถโดยสาร: จากขนส่งโคราช ออกทุก 30 นาที ใช้เวลา ~1 ชั่วโมง\n🚗 รถยนต์: ทางหลวง 2 → ทางหลวง 206 ระยะทาง 60 กม.\n🅿️ มีที่จอดรถฟรีบริเวณทางเข้า\n🚆 รถไฟ: กรุงเทพฯ → โคราช (~3.5 ชม.) แล้วต่อรถสองแถว'
+      answer: 'การเดินทาง:\n— รถโดยสาร: จากขนส่งโคราช ออกทุก 30 นาที ใช้เวลา ~1 ชั่วโมง\n— รถยนต์: ทางหลวง 2 → ทางหลวง 206 ระยะทาง 60 กม.\n— ที่จอดรถฟรีบริเวณทางเข้า\n— รถไฟ: กรุงเทพฯ → โคราช (~3.5 ชม.) แล้วต่อรถสองแถว'
     },
     {
       id: 'attractions',
       triggers: ['ดู', 'ที่ท่องเที่ยว', 'สถานที่', 'ไฮไลท์', 'see', 'attraction', 'highlight', 'visit'],
-      answer: '🏛️ สิ่งที่ไม่ควรพลาด:\n• ปรางค์ประธาน — หอคอยกลางสูงตระหง่าน\n• สะพานนาคราช — พญานาค 7 เศียรตั้งเฝ้า\n• โคปุระด้านใต้ — ประตูทางเข้าหันหน้าสู่นครวัด\n• ปรางค์พรหมทัต — ปรางค์ข้างสีน้ำตาลแดง\n\n📍 ใกล้เคียง: สระสีงาม (ต้นไทรยักษ์) ห่างแค่ 800 ม.'
+      answer: 'สิ่งที่ไม่ควรพลาด:\n• ปรางค์ประธาน — หอคอยกลางสูงตระหง่าน\n• สะพานนาคราช — พญานาค 7 เศียรตั้งเฝ้า\n• โคปุระด้านใต้ — ประตูทางเข้าหันหน้าสู่นครวัด\n• ปรางค์พรหมทัต — ปรางค์ข้างสีน้ำตาลแดง\n\nใกล้เคียง: สระสีงาม (ต้นไทรยักษ์) ห่างแค่ 800 ม.'
     },
     {
       id: 'smartflow',
       triggers: ['ai', 'สมาร์ท', 'กล้อง', 'ระบบ', 'แจ้ง', 'line', 'ไลน์', 'smartflow'],
-      answer: '🤖 SmartFlow AI คือระบบตรวจจับฝูงชนด้วย AI ของเราเอง!\n\n📷 กล้อง AI วิเคราะห์ความหนาแน่นผู้เข้าชมแบบ Real-time\n📱 ส่งการแจ้งเตือนผ่าน LINE ให้เจ้าหน้าที่ทันทีเมื่อพื้นที่แน่น\n🛍️ แจ้งผู้ค้าแผงลอยใกล้เคียงในวันที่มีผู้เยี่ยมชมมาก\n🧓 ตรวจจับผู้สูงอายุหรือผู้ที่ต้องการความช่วยเหลือ'
+      answer: 'ระบบ AI ตรวจจับฝูงชนของเรา:\n\n— กล้อง AI วิเคราะห์ความหนาแน่นผู้เข้าชมแบบ Real-time\n— ส่งการแจ้งเตือนผ่าน LINE ให้เจ้าหน้าที่ทันทีเมื่อพื้นที่แน่น\n— แจ้งผู้ค้าแผงลอยใกล้เคียงในวันที่มีผู้เยี่ยมชมมาก\n— ตรวจจับผู้สูงอายุหรือผู้ที่ต้องการความช่วยเหลือ'
     },
     {
       id: 'food',
       triggers: ['อาหาร', 'กิน', 'ร้าน', 'ตลาด', 'food', 'eat', 'restaurant', 'market'],
-      answer: '🍜 ร้านอาหารและของกิน:\n• ตลาดกลางคืนพิมาย — ห่าง 500 ม. อาหารอร่อยราคาย่อมเยา\n• ร้านอาหารท้องถิ่นรอบๆ จัตุรัสเมือง\n• แผงค้าหน้าทางเข้าอุทยาน\n• บริเวณสระสีงาม มีร้านขายของว่าง\n\n💡 ระบบ SmartFlow AI จะแจ้งผู้ค้าให้มาตั้งแผงล่วงหน้าในวันที่คนพลุกพล่าน!'
+      answer: 'ร้านอาหารและของกิน:\n• ตลาดกลางคืนพิมาย — ห่าง 500 ม. อาหารอร่อยราคาย่อมเยา\n• ร้านอาหารท้องถิ่นรอบๆ จัตุรัสเมือง\n• แผงค้าหน้าทางเข้าอุทยาน\n• บริเวณสระสีงาม มีร้านขายของว่าง\n\nระบบ AI จะแจ้งผู้ค้าให้มาตั้งแผงล่วงหน้าในวันที่คนพลุกพล่าน'
     },
     {
       id: 'parking',
       triggers: ['จอด', 'ที่จอด', 'รถยนต์', 'parking', 'car park'],
-      answer: '🅿️ มีที่จอดรถฟรีติดกับประตูทางเข้าหลัก รองรับได้ทั้งรถยนต์และมอเตอร์ไซค์ ในวันที่มีผู้เยี่ยมชมมาก จะมีการจัดพื้นที่จอดรถเพิ่มเติมบริเวณใกล้เคียง'
+      answer: 'มีที่จอดรถฟรีติดกับประตูทางเข้าหลัก รองรับได้ทั้งรถยนต์และมอเตอร์ไซค์ ในวันที่มีผู้เยี่ยมชมมาก จะมีการจัดพื้นที่จอดรถเพิ่มเติมบริเวณใกล้เคียง'
     },
   ];
 
-  const defaultAnswer = '🙏 ขอบคุณสำหรับคำถามนะคะ ตอนนี้ยังไม่มีข้อมูลเรื่องนี้\nสามารถโทรสอบถามได้ที่ 044-471 568 หรือส่ง LINE มาที่ @PhimaiHistoricalPark ได้เลยค่ะ';
+  const defaultAnswer = 'ขอบคุณสำหรับคำถามนะคะ ตอนนี้ยังไม่มีข้อมูลเรื่องนี้\nสามารถโทรสอบถามได้ที่ 044-471 568 หรือส่ง LINE มาที่ @PhimaiHistoricalPark ได้เลยค่ะ';
 
   function getAnswer(text) {
     const lower = text.toLowerCase();
@@ -209,13 +209,16 @@
     return n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
   }
 
+  const BOT_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><circle cx="12" cy="10" r="3"/></svg>';
+  const USER_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
   function appendMsg(text, role) {
     const row = document.createElement('div');
     row.className = `msg-row ${role}`;
 
     const av = document.createElement('div');
     av.className = 'msg-avatar-sm';
-    av.textContent = role === 'bot' ? '🤖' : '👤';
+    av.innerHTML = role === 'bot' ? BOT_SVG : USER_SVG;
 
     const wrapper = document.createElement('div');
     const bubble  = document.createElement('div');
@@ -240,7 +243,7 @@
     typingRow.className = 'msg-row bot';
     const av  = document.createElement('div');
     av.className = 'msg-avatar-sm';
-    av.textContent = '🤖';
+    av.innerHTML = BOT_SVG;
     const ind = document.createElement('div');
     ind.className = 'typing-indicator';
     for (let i = 0; i < 3; i++) {
@@ -278,8 +281,64 @@
 })();
 
 /* ----------------------------------------------------------------
-   8. CONTACT FORM — mock submit
+   9. LIGHTBOX
 ---------------------------------------------------------------- */
+(function initLightbox() {
+  const overlay   = document.getElementById('lightboxOverlay');
+  const img       = document.getElementById('lightboxImg');
+  const caption   = document.getElementById('lightboxCaption');
+  const desc      = document.getElementById('lightboxDesc');
+  const counter   = document.getElementById('lightboxCounter');
+  const closeBtn  = document.getElementById('lightboxClose');
+  const prevBtn   = document.getElementById('lightboxPrev');
+  const nextBtn   = document.getElementById('lightboxNext');
+  if (!overlay) return;
+
+  const slides = [...document.querySelectorAll('.carousel-slide[data-src]')];
+  let current = 0;
+
+  function open(index) {
+    current = index;
+    const slide = slides[current];
+    img.src = slide.dataset.src;
+    img.alt = slide.querySelector('img').alt;
+    caption.textContent = slide.dataset.caption || '';
+    desc.textContent    = slide.dataset.desc || '';
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    img.src = '';
+  }
+
+  function prev() { open((current - 1 + slides.length) % slides.length); }
+  function next() { open((current + 1) % slides.length); }
+
+  slides.forEach((slide, i) => slide.addEventListener('click', () => open(i)));
+  closeBtn.addEventListener('click', close);
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  document.addEventListener('keydown', e => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape')     close();
+    if (e.key === 'ArrowLeft')  prev();
+    if (e.key === 'ArrowRight') next();
+  });
+
+  // touch swipe support
+  let touchStartX = 0;
+  overlay.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  overlay.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+  }, { passive: true });
+})();
 (function initContactForm() {
   const btn = document.getElementById('formSubmitBtn');
   if (!btn) return;
@@ -287,10 +346,10 @@
     btn.textContent = 'กำลังส่ง...';
     btn.disabled = true;
     setTimeout(() => {
-      btn.textContent = '✓ ส่งข้อความแล้ว! เราจะตอบกลับภายใน 24 ชั่วโมง';
+      btn.textContent = 'ส่งข้อความสำเร็จ — เราจะตอบกลับภายใน 24 ชั่วโมง';
       btn.style.background = '#16a34a';
       setTimeout(() => {
-        btn.textContent = 'ส่งข้อความ →';
+        btn.textContent = 'ส่งข้อความ';
         btn.style.background = '';
         btn.disabled = false;
       }, 4500);
