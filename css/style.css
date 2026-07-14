@@ -1080,21 +1080,62 @@ body::after {
 .tip-text { font-size: 0.84rem; color: var(--text-mid); line-height: 1.7; }
 
 /* ----------------------------------------------------------------
-   12. CHATBOT
+   12. CHATBOT (Botpress)
 ---------------------------------------------------------------- */
 #chatbot {
   padding: 120px 0;
   background: linear-gradient(160deg, var(--orange-pale) 0%, var(--bg) 60%);
 }
-.chatbot-layout {
+.chatbot-bp-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 56px;
-  align-items: start;
+  align-items: center;
 }
-.chatbot-info { padding-top: 10px; }
+.chatbot-bp-topics { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 
-.chat-topic-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.chatbot-bp-card {
+  background: var(--text-dark);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 24px 60px var(--shadow-strong);
+}
+.chatbot-bp-card-icon {
+  width: 60px; height: 60px;
+  background: rgba(201,112,48,0.15);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange-light);
+}
+.chatbot-bp-card-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.chatbot-bp-card-desc {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.75;
+  max-width: 320px;
+}
+.chatbot-bp-open-btn { margin-top: 8px; }
+.chatbot-bp-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.06em;
+}
+@media (max-width: 900px) {
+  .chatbot-bp-layout { grid-template-columns: 1fr; }
+}
 .chat-tag {
   background: var(--bg-card);
   border: 1px solid var(--border);

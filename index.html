@@ -50,7 +50,7 @@
           <li><a href="#info">ประวัติ</a></li>
           <li><a href="#gallery">แกลเลอรี</a></li>
           <li><a href="#map-section">แผนที่</a></li>
-          <li><a href="#chatbot">ถาม AI</a></li>
+          <li><a href="#chatbot" id="openChatNav">ถาม AI</a></li>
           <li><a href="#contact" class="nav-cta">ติดต่อ</a></li>
         </ul>
 
@@ -106,7 +106,7 @@
           สำรวจอุทยาน
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="#chatbot" class="btn btn-ghost-white">
+        <a href="#chatbot" class="btn btn-ghost-white" id="openChatBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           ถามไกด์ AI
         </a>
@@ -666,86 +666,41 @@
   </section>
 
   <!-- ============================================================
-       CHATBOT — AI Guide
+       CHATBOT — AI Guide (Botpress)
   ============================================================ -->
   <section id="chatbot">
     <div class="container">
-      <div class="chatbot-layout">
-
-        <!-- ข้อมูลซ้าย -->
-        <div class="chatbot-info reveal">
+      <div class="chatbot-bp-layout reveal">
+        <div class="chatbot-bp-text">
           <span class="section-label">AI ไกด์</span>
           <h2 class="section-title">ถามทุกอย่างเกี่ยวกับพิมาย</h2>
           <p class="section-subtitle">
-            AI ไกด์ของเรารู้ทุกอย่างเกี่ยวกับอุทยานประวัติศาสตร์พิมาย
+            AI ไกด์รู้ทุกอย่างเกี่ยวกับอุทยานประวัติศาสตร์พิมาย
             ตั้งแต่เวลาเปิด ราคาตั๋ว ไปจนถึงความหมายของลวดลายโบราณ พร้อมให้บริการ 24 ชั่วโมง
           </p>
-
-          <!-- ปุ่มหัวข้อ (คลิกแล้วส่งคำถามอัตโนมัติ) -->
-          <div class="chat-topic-tags">
-            <span class="chat-tag" onclick="sendChatQuick('เวลาเปิด-ปิดกี่โมง')">เวลาเปิด-ปิด</span>
-            <span class="chat-tag" onclick="sendChatQuick('ค่าเข้าชมเท่าไหร่')">ค่าเข้าชม</span>
-            <span class="chat-tag" onclick="sendChatQuick('ประวัติความเป็นมาของพิมาย')">ประวัติ</span>
-            <span class="chat-tag" onclick="sendChatQuick('เดินทางมาพิมายยังไง')">การเดินทาง</span>
-            <span class="chat-tag" onclick="sendChatQuick('ต้องดูอะไรบ้างที่พิมาย')">สิ่งน่าชม</span>
-            <span class="chat-tag" onclick="sendChatQuick('ระบบ AI ตรวจจับฝูงชนคืออะไร')">ระบบ AI</span>
-            <span class="chat-tag" onclick="sendChatQuick('ร้านอาหารใกล้พิมายมีที่ไหนบ้าง')">อาหารใกล้เคียง</span>
-            <span class="chat-tag" onclick="sendChatQuick('มีที่จอดรถไหม')">ที่จอดรถ</span>
+          <div class="chatbot-bp-topics">
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">เวลาเปิด-ปิด</span>
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">ค่าเข้าชม</span>
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">ประวัติ</span>
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">การเดินทาง</span>
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">สิ่งน่าชม</span>
+            <span class="chat-tag" onclick="window.botpress && window.botpress.open()">ที่จอดรถ</span>
           </div>
         </div>
-
-        <!-- หน้าต่าง Chat (ขวา) -->
-        <div class="reveal reveal-delay-2">
-          <div class="chat-window">
-            <!-- Header -->
-            <div class="chat-header">
-              <div class="chat-avatar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>
-              </div>
-              <div>
-                <div class="chat-header-name">PhimAI ไกด์</div>
-                <div class="chat-header-status">
-                  <div class="chat-status-dot"></div>
-                  ออนไลน์ · ขับเคลื่อนด้วย AI
-                </div>
-              </div>
+        <div class="chatbot-bp-cta reveal reveal-delay-2">
+          <div class="chatbot-bp-card">
+            <div class="chatbot-bp-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             </div>
-
-            <!-- ข้อความ -->
-            <div class="chat-messages" id="chatMessages">
-              <!-- ข้อความเริ่มต้นจาก bot -->
-              <div class="msg-row bot">
-                <div class="msg-avatar-sm">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><circle cx="12" cy="10" r="3"/></svg>
-                </div>
-                <div>
-                  <div class="msg-bubble">
-                    สวัสดีครับ! ยินดีต้อนรับสู่อุทยานประวัติศาสตร์พิมาย<br/>
-                    ผมเป็น AI ไกด์ ถามได้เลยครับ ไม่ว่าจะเป็นเรื่องประวัติ ค่าเข้า การเดินทาง หรือสถานที่น่าสนใจ
-                  </div>
-                  <div class="msg-time">เพิ่งได้รับ</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ปุ่มตอบเร็ว -->
-            <div class="quick-replies" id="quickReplies">
-              <button class="quick-reply" onclick="sendChatQuick('เวลาเปิด-ปิด')">เวลาเปิด</button>
-              <button class="quick-reply" onclick="sendChatQuick('ค่าเข้าชม')">ค่าตั๋ว</button>
-              <button class="quick-reply" onclick="sendChatQuick('เดินทางยังไง')">การเดินทาง</button>
-            </div>
-
-            <!-- ช่องพิมพ์ -->
-            <div class="chat-input-row">
-              <input
-                type="text"
-                class="chat-input"
-                id="chatInput"
-                placeholder="ถามเกี่ยวกับพิมาย..."
-              />
-              <button class="chat-send-btn" id="chatSendBtn" aria-label="ส่ง">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z"/></svg>
-              </button>
+            <div class="chatbot-bp-card-title">PhimAI ไกด์</div>
+            <p class="chatbot-bp-card-desc">ถามเกี่ยวกับประวัติศาสตร์ การเดินทาง ค่าเข้าชม หรือสิ่งน่าชมในอุทยาน — AI พร้อมตอบทันที</p>
+            <button class="btn btn-primary chatbot-bp-open-btn" onclick="window.botpress && window.botpress.open()" aria-label="เปิด AI ไกด์">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              เริ่มสนทนากับ AI
+            </button>
+            <div class="chatbot-bp-badge">
+              <div class="chat-status-dot"></div>
+              ออนไลน์ตลอด 24 ชั่วโมง
             </div>
           </div>
         </div>
@@ -917,6 +872,10 @@
       <div class="lightbox-counter" id="lightboxCounter"></div>
     </div>
   </div>
+
+  <!-- Botpress webchat -->
+  <script src="https://cdn.botpress.cloud/webchat/v3.6/inject.js"></script>
+  <script src="https://files.bpcontent.cloud/2026/06/15/15/20260615155001-C5TV6GQV.js" defer></script>
 
   <!-- JavaScript หลัก -->
   <script src="js/main.js"></script>
